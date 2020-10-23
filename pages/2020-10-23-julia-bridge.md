@@ -81,7 +81,8 @@ One person might have a small idea, but through Julia's ability for composition,
 ---
 
 I think Julia's gentle learning curve and raw processing power are an invitation to domain experts outside of computer science to help write the software their fields need.
-Personally, it makes me feel more powerful and self-sufficient to work in a dynamic language that can not only give access to other people's well written packages (written in Julia, but also R, Python and Matlab through glue packages), but allows me to write my own, and not just for toy problems.
+Personally, it makes me feel more powerful and self-sufficient to work in a dynamic language that can not only give access to other people's well written packages (written in Julia, but also R, Python and Matlab through `RCall.jl`, `PyCall.jl` and `MATLAB.jl`, respectively).
+It also allows me to write my own, and not just for toy problems but theoretically scalable even to supercomputers.
 
 I hope that in the future Julia loses the perception of being a niche language for numerics, which might discourage people who don't need just that from trying it.
 Instead, I would frame it as a powerful general programming language that offers something for everyone from beginners to experts and encourages collaboration and code reuse through its extensible multiple dispatch paradigm.
