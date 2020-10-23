@@ -1,0 +1,24 @@
+.postgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-gap: 1rem;
+}
+  
+.postgrid > p {
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+    font-size: 0.9em;
+    /* font-family: Open Sans, sans-serif; */
+    font-weight: 600;
+    line-height: 1.1rem;
+    border-radius: 5px;
+    border: 1px solid #eeeeee;
+    background-color: #f9f9f9;
+    /* box-shadow: 1px 1px 5px #aaaaaa; */
+    text-align: center;
+    vertical-align: middle;
+}
+
+.postgrid > p a {
+    display: block;
+    padding-bottom: 0.5em;
+}
