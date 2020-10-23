@@ -60,14 +60,17 @@ Many of them, like me, are not computer scientists.
 That doesn't stop them from being involved in writing serious low level packages.
 And if they are not writing packages themselves, they are often helping by filing issues and creating PRs, adding their own perspectives on design questions.
 They do this even for the Julia language itself, if they find bugs or API inconsistencies.
-In all my years of using Matlab, Python and R, I haven't seen other researchers contribute to the fundamentals of their respective ecosystems in this way.
+When I was using Matlab, Python and R, I didn't see other researchers contribute to the fundamentals of their respective ecosystems in this way.
 In Julia, I see it all the time.
 
 This is possible, in my opinion, because there is a continuous path from surface-level glue code to close-to-the-metal high-performance code in Julia, which can be discovered almost playfully - usually driven by the desire to reduce the number of allocations or runtime of a small function.
 In Julia, novices can learn first principles in a beginner friendly way, without caring about types, writing code that looks basically like Python.
-These first principles don't become obsolete when _serious_ packages are discovered, but they become ever more powerful, the more knowledge a new user absorbs.
+These first principles don't lose their importance when _serious_ packages are discovered.
+They instead become ever more powerful, the more knowledge a new user absorbs, because they can be combined in more and more flexible and innovative ways.
 As another example, if you use Stan from R, you have to feed it a script in a different language, while your `Turing.jl` models can be written in normal Julia.
-Advanced topics like metaprogramming and optimization are always only a few steps away, and interesting lessons about one's own code or the inner workings of Julia can be learned just by applying a couple of macros such as `@code_warntype` here and there.
+There's really no limit to what you can send through Bayesian inference this way.
+Additionally, advanced topics like metaprogramming and optimization are always only a few steps away, and interesting lessons about one's own code or the inner workings of Julia can be learned just by applying a couple of macros such as `@code_warntype` here and there.
+A transformation from beginner to expert code sometimes goes only through a couple minor changes like adding `@inbounds` in strategical places, or minimizing the use of allocations.
 
 For example, with `Revise.jl` and the `@edit` macro, it's quite simple to manipulate even Base functions on the fly, and play around with different implementations of Julia's fundamental building blocks.
 The multiple dispatch paradigm makes it possible to inject functionality deep into third party code and to connect one's homegrown implementations with the work of others in a way that I have never seen in Python, R or Matlab.
