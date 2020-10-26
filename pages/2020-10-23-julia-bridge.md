@@ -1,6 +1,7 @@
 @def published = "2020-10-23 00:00:00 +0000"
 @def title = "Julia Helps To Bridge The Gap Between User and Creator"
 @def authors = "Julius Krumbiegel"
+@def rss = "How Julia eases the path to contribute to scientific software"
 @def rss_pubdate = Date(2020, 10, 23)
 @def rss_author = "Julius Krumbiegel"
 @def tags = ["julia"]
