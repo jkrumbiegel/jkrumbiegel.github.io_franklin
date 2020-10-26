@@ -3,6 +3,7 @@
 @def authors = "Julius Krumbiegel"
 @def rss_pubdate = Date(2020, 10, 23)
 @def rss_author = "Julius Krumbiegel"
+@def tags = ["julia"]
 
 # Julia Helps To Bridge The Gap Between User and Creator
 
