@@ -39,7 +39,7 @@ function hfun_blogposts()
             r = read(file, String)
             
             title = match(r"@def title = \"(.*?)\"", r).captures[1]
-            date = Date(match(r"@def published = \"([^\s]*)", r).captures[1])
+            date = Date(match(r"@def published = \"([0-9\-]*)", r).captures[1])
             link = dir * "/" * splitext(page)[1]
 
             (; title, date, year = year(date), month = month(date), day = day(date), link)
