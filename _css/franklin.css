@@ -81,7 +81,7 @@ html {
     TITLES
 ================================================================== */
 
-.franklin-content h1 { font-size: 24px; }
+.franklin-content h1 { font-size: 28px; }
 .franklin-content h2 { font-size: 22px; }
 .franklin-content h3 { font-size: 20px; }
 
@@ -90,9 +90,10 @@ html {
 
 .franklin-content h1 {
     padding-bottom: 0.5em;
-    border-bottom: 3px double lightgrey;
     margin-top: 1.5em;
-    margin-bottom: 1em; }
+    margin-bottom: 1em;
+    line-height: 1em;
+}
 
 .franklin-content h2 {
     padding-bottom: 0.3em;
@@ -141,7 +142,7 @@ html {
         margin: 10px 0; }
 
 .franklin-content a {
-    color: #004de6;
+    color: #32528d;
     text-decoration: none; }
 
 .franklin-content a:hover {

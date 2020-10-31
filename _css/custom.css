@@ -1,24 +1,49 @@
-.postgrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    grid-gap: 1rem;
-}
-  
-.postgrid > p {
-    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-    font-size: 0.9em;
-    /* font-family: Open Sans, sans-serif; */
-    font-weight: 600;
-    line-height: 1.1rem;
-    border-radius: 5px;
-    border: 1px solid #eeeeee;
-    background-color: #f9f9f9;
-    /* box-shadow: 1px 1px 5px #aaaaaa; */
-    text-align: center;
-    vertical-align: middle;
+.post-year-group {
+    display: flex;
 }
 
-.postgrid > p a {
-    display: block;
+.posts > * + * {
+    margin-top: 1em;
+}
+
+.post-year {
+    font-size: 3ex;
+    padding-right: 1em;
+    opacity: 0.5;
+    display: grid;
+    align-self: center;
+}
+
+ul.post-year-items {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    padding: 0.75em;
+    border-radius: 0.5em;
+    background: #f9f9f9;
+}
+
+.post-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    text-decoration: none;
+}
+
+.post-item:not(:first-child) {
+    padding-top: 0.5em;
+    border-top: 1px dashed rgb(226, 226, 226);
+}
+
+.post-item:not(:last-child) {
     padding-bottom: 0.5em;
+}
+
+.post-item a {
+    color: black;
+}
+
+span.post-date {
+    opacity: 0.5;
 }
