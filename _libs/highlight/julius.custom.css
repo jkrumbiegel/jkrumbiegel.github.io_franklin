@@ -4,6 +4,8 @@
     padding:1em;
     color:#333;
     background:#f8f8f8;
+    line-height: 1.35em;
+    border-radius: 0.5em; 
     -moz-box-shadow:    inset 0 0 7px #0000000d;
     -webkit-box-shadow: inset 0 0 7px #0000000d;
     box-shadow:         inset 0 0 7px #0000000d;
@@ -49,7 +51,7 @@
     color:#5c87ca;
 }
 .hljs-meta{
-    color:#999;
+    color:#525252;
     font-weight:700;
 }
 .hljs-deletion{

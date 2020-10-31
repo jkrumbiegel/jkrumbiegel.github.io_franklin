@@ -19,7 +19,7 @@ ul.post-year-items {
     margin: 0;
     padding: 0;
     list-style: none;
-    padding: 0.75em;
+    padding: 1.25em;
     border-radius: 0.5em;
     background: #f9f9f9;
 }
@@ -32,12 +32,12 @@ ul.post-year-items {
 }
 
 .post-item:not(:first-child) {
-    padding-top: 0.5em;
+    padding-top: 1em;
     border-top: 1px dashed rgb(226, 226, 226);
 }
 
 .post-item:not(:last-child) {
-    padding-bottom: 0.5em;
+    padding-bottom: 1em;
 }
 
 .post-item a {
