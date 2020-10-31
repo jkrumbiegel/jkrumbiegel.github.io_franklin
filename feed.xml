@@ -6,6 +6,14 @@
   <link>https://jkrumbiegel.github.io/</link>
   <atom:link href="https://jkrumbiegel.github.io/feed.xml" rel="self" type="application/rss+xml" />
   <item>
+    <title>Tuples and Vectors, Allocations and Performance for Beginners</title>
+    <link>https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/index.html</link>
+    <description><![CDATA[An Intuitive Understanding of Types, Allocations and Performance
+<br><a href="https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/index.html">Read more</a>]]></description>
+    <guid>https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/index.html</guid>
+    <pubDate>Sat, 31 Oct 2020 00:00:00 UT</pubDate>
+  </item>
+  <item>
     <title>Julia Helps To Bridge The Gap Between User and Creator</title>
     <link>https://jkrumbiegel.github.io/pages/2020-10-23-julia-bridge/index.html</link>
     <description><![CDATA[How Julia eases the path to contributing to scientific software
