@@ -35,7 +35,7 @@ jobs:
             using Pkg; Pkg.add(["NodeJS", "Franklin"]);
             using NodeJS; run(`$(npm_cmd()) install highlight.js`);
             using Franklin;
-            Franklin.HIGHLIGHTJS[] = "_/libs/highlight/julia.highlight.js";
+            @show Franklin.HIGHLIGHTJS[] = joinpath(pwd(), "_/libs/highlight/julia.highlight.js");
             Pkg.activate("."); Pkg.instantiate();
             optimize()'
     - name: Build and Deploy
