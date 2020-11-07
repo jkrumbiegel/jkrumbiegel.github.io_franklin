@@ -4,7 +4,7 @@
   <description><![CDATA[Neuroscientific research and Julia programming
 ]]></description>
   <link>https://jkrumbiegel.github.io/</link>
-  <atom:link href="https://jkrumbiegel.github.io/feed.xml" rel="self" type="application/rss+xml" />
+  <atom:link href="https://jkrumbiegel.github.io/tag/julia/feed.xml" rel="self" type="application/rss+xml" />
   <item>
     <title>Tuples and Vectors, Allocations and Performance for Beginners</title>
     <link>https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/</link>
