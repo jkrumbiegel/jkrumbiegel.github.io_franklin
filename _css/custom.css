@@ -29,6 +29,7 @@ ul.post-year-items {
     justify-content: space-between;
     align-items: baseline;
     text-decoration: none;
+    text-align: left;
 }
 
 .post-item:not(:first-child) {
@@ -46,6 +47,8 @@ ul.post-year-items {
 
 span.post-date {
     opacity: 0.5;
+    padding-left: 1em;
+    align-self: center;
 }
 
 
