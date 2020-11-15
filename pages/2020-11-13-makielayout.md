@@ -7,7 +7,7 @@
 
 # Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia
 
-## Plotting Is Hard
+## Making Beautiful Plots Is Hard
 
 Researchers often need to create complex visualizations, that go far beyond single axes or simple subplot grids.
 This is especially true for graphics meant for publication, which are held to a higher aesthetic standard.
