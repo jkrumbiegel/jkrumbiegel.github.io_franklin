@@ -2,26 +2,32 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
+    <loc>https://jkrumbiegel.github.io/pages/2020-11-15-makielayout/index.html</loc>
+    <lastmod>2020-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+</url>
+<url>
     <loc>https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/index.html</loc>
-    <lastmod>2020-11-07</lastmod>
+    <lastmod>2020-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
 <url>
     <loc>https://jkrumbiegel.github.io/404/index.html</loc>
-    <lastmod>2020-11-07</lastmod>
+    <lastmod>2020-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
 <url>
     <loc>https://jkrumbiegel.github.io/pages/2020-10-23-julia-bridge/index.html</loc>
-    <lastmod>2020-11-07</lastmod>
+    <lastmod>2020-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
 <url>
     <loc>https://jkrumbiegel.github.io/index.html</loc>
-    <lastmod>2020-11-07</lastmod>
+    <lastmod>2020-11-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
 </url>
