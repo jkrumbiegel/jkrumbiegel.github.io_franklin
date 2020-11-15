@@ -16,6 +16,8 @@ Still, most commonly used plotting software doesn't offer a straight-forward pat
 Therefore, the users of basically all well-known plotting solutions often have to resort to hacks, brittle manual tweaking, or even roundtrips to Illustrator to achieve the results they want.
 Common issues are overlaps, misalignments and lots of work to redo if the figure size ever changes.
 
+## MakieLayout Makes Layouting Graphics Easy
+
 [MakieLayout](http://makie.juliaplots.org/stable/makielayout/tutorial.html) is a layout engine that attempts to solve these issues and more.
 It is now part of the [Makie plotting ecosystem](http://makie.juliaplots.org/stable/) for the Julia language.
 
@@ -53,7 +55,7 @@ layout[2, :] = LText(scene, "Group Measurements", padding = (5, 5, 5, 5))
 In most tools, superficially simple things like adding supertitles, sub-labels, or legends and colorbars in odd places tend to be quite difficult.
 Tools that do allow for static layout optimizations usually break apart under interactive conditions, when figure size changes dynamically and content has to follow.
 
-## MakieLayout Makes Layouting Graphics Easy
+## It's Grids All The Way Down
 
 MakieLayout allows users to assemble complex graphics or interactive visualizations using flexible grids that are highly customizable for the greatest creative freedom.
 Elements can shrink or expand to fit the available space, and are always aligned in a visually pleasing way.
