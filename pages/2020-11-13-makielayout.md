@@ -1,8 +1,8 @@
-@def published = "2020-11-14"
-@def title = "Heyo"
+@def published = "2020-11-15"
+@def title = "Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia"
 @def authors = "Julius Krumbiegel"
-@def rss = "An Intuitive Understanding of Types, Allocations and Performance"
-@def rss_pubdate = Date(2020, 11, 14)
+@def rss = "Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia"
+@def rss_pubdate = Date(2020, 11, 15)
 @def tags = ["julia"]
 
 # Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia
