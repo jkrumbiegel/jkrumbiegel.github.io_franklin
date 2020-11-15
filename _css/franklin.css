@@ -189,7 +189,7 @@ html {
     width: 100%;
     text-align: center;
     padding: 0;
-    box-shadow: 0px 2px 8px 2px #00000012;
+    box-shadow: 0px 2px 8px 2px rgba(0, 0, 0, 0.1);
 }
 
 .franklin-content .img-small img {
