@@ -87,6 +87,7 @@ But we also have a lot of anonymous functions here with all those `x ->` stateme
 
 We need to write all these anonymous functions because the `|>` operator can only do `f(x)`, that means it can take a function and exactly one argument and apply the function to it.
 It doesn't allow for giving two arguments, which we need for each of the transformations to specify what we're actually doing with our dataframe.
+Just `groupby(df)` doesn't do anything.
 That's why we convert each of our two-argument function calls into a mini-function that takes only one argument.
 We're fixing the second argument within each anonymous functions, which is a form of [Currying](https://en.wikipedia.org/wiki/Currying).
 
