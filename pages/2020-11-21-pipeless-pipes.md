@@ -188,7 +188,7 @@ end
 
 Now there is basically no redundant information in the pipe anymore, everything is encoded in the `@_` macro and the rules attached to it.
 
-_(As a side note, there is the `@>` macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros don't allow you to omit the first argument like `@_` does.)_
+_(As a side note, there is the `@>` macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros to Pipe.jl don't allow you to omit the first argument like `@_` does.)_
 
 As a bonus, the error message example turns into this, clearly showing that the `groupby` line is wrong:
 
