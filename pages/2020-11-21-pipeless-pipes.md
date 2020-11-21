@@ -202,7 +202,7 @@ Most piping packages I know do not consider this possibility and have no way to 
 
 PipelessPipes.jl has a special marker macro `@!` which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.
 
-For example, if we wanted to check for some reason how much data we left after filtering, we could do this:
+For example, if we wanted to check for some reason how much data we have left after filtering, we could do this:
 
 ```julia
 @_ df begin
