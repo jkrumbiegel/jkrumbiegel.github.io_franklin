@@ -1,7 +1,7 @@
 .hljs{
     font-family: Inconsolata, monospace;
     font-weight: 400;
-    font-size: 105%;
+    font-size: 100%;
     display:block;
     overflow-x:auto;
     padding: 1em;
@@ -9,9 +9,9 @@
     background:#f8f8f8;
     line-height: 1.25em;
     border-radius: 0.25em;
-    -moz-box-shadow:    inset 0 0 7px #0000000d;
-    -webkit-box-shadow: inset 0 0 7px #0000000d;
-    box-shadow:         inset 0 0 7px #0000000d;
+    -moz-box-shadow:    inset 0 0 7px rgba(0, 0, 0, 0.04);
+    -webkit-box-shadow: inset 0 0 7px  rgba(0, 0, 0, 0.04);
+    box-shadow:         inset 0 0 7px  rgba(0, 0, 0, 0.04);
 }
 .hljs-comment,.hljs-quote{
     color:rgb(183, 180, 176);
