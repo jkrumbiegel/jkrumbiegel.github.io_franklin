@@ -5,7 +5,7 @@ Pkg.activate(".")
 
 using DataFrames
 using Pipe
-using PipelessPipes
+using Chain
 
 
 df = DataFrame(
@@ -22,11 +22,10 @@ df = DataFrame(
     groupby(_, (:color, :shape)) |>
     combine(_, :weight => sum => :total_weight)
 
-@_ df begin
+@chain df begin
     select(Not(:id))
     filter(row -> row.weight < 100, _)
-    @! println("There are $(nrow(_)) rows after filtering.")
-    groupby([:color, :shape])
+    groupby((:color, :shape))
     combine(:weight => sum => :total_weight)
 end
 
