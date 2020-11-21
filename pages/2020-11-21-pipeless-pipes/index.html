@@ -85,7 +85,7 @@ combined <span class=hljs-keyword >=</span> <span class=hljs-built_in >combine</
 <h3 id=interjecting_debugging_statements ><a href="#interjecting_debugging_statements">Interjecting Debugging Statements</a></h3>
 <p>Often, I have a pipeline which doesn&#39;t work <em>quite</em> right, but I don&#39;t know immediately where it goes wrong. In those cases, I often want to print out some information within the pipeline, just to check if my assumptions hold. Most piping packages I know do not consider this possibility and have no way to execute a function that doesn&#39;t affect the following pipeline steps.</p>
 <p>PipelessPipes.jl has a special marker macro <code>@&#33;</code> which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.</p>
-<p>For example, if we wanted to check for some reason how much data we left after filtering, we could do this:</p>
+<p>For example, if we wanted to check for some reason how much data we have left after filtering, we could do this:</p>
 <pre><code class="julia hljs"><span class=hljs-meta >@_</span> df <span class=hljs-keyword >begin</span>
     <span class=hljs-built_in >select</span>(<span class=hljs-built_in >Not</span>(<span class=hljs-symbol >:id</span>))
     <span class=hljs-built_in >filter</span>(row <span class=hljs-built_in >-&gt;</span> row<span class=hljs-built_in >.</span>weight <span class=hljs-built_in >&lt;</span> <span class=hljs-number >100</span>, _)
