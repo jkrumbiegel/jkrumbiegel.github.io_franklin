@@ -2,6 +2,34 @@
     DEFAULT FONT AND LAYOUT
 ================================================================== */
 
+@font-face {
+    font-family: Inconsolata;
+    src: url("/assets/fonts/Inconsolata-Regular.ttf") format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Inconsolata;
+    src: url("/assets/fonts/Inconsolata-Medium.ttf") format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Inconsolata;
+    src: url("/assets/fonts/Inconsolata-SemiBold.ttf") format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Inconsolata;
+    src: url("/assets/fonts/Inconsolata-Bold.ttf") format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
 html {
     font-family: Helvetica, Arial, sans-serif;
     font-size  : 17px;
@@ -144,7 +172,7 @@ html {
         margin: 10px 0; }
 
 .franklin-content a {
-    color: #32528d;
+    color: #6284c3;
     text-decoration: none; }
 
 .franklin-content a:hover {
@@ -220,10 +248,12 @@ body { counter-reset: eqnum; }
 ================================================================== */
 
 code {
-    background-color: rgba(27,31,35,0.05);
-    padding: 0.1em 0.2em;
+    background-color: rgba(0, 0, 0, 0.07);
+    padding: 0.1em 0.3em;
     border-radius: 2px;
     font-size: 90%;
+    font-family: Inconsolata;
+    font-weight: 500;
 }
 
 /* .franklin-content code { */

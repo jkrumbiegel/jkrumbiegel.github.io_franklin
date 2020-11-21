@@ -15,7 +15,7 @@ nav li {
     display: inline-block; }
 
 nav li a {
-    color: #004de6;
+    color: #616161;
     text-decoration: none;
     font-size: 18px;
     font-weight: bold;
@@ -27,8 +27,10 @@ nav li a {
     padding-bottom:5px;
     margin-left:7px;
     margin-right:7px;
-    border-bottom: 2px solid #4C9CF1;
-    transition: color 0.3s ease; }
+    border-bottom: 2px solid #E7E7E7;
+    transition: color 0.3s ease;
+    transition: border 0.3s ease;
+}
 
 header {
     text-align: right;
@@ -41,8 +43,9 @@ header .blog-name {
     width: 35%;
     display: inline-block;
     text-align: left;
-    font-size: 18px;
-    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 24px;
+    font-family: Inconsolata, monospace;
+    font-weight: 700;
     padding-top: 10px;}
 
 header .blog-name a {
@@ -51,7 +54,7 @@ header .blog-name a {
 
 header li a:hover {
     color: black;
-    border-bottom: 2px solid black; }
+    border-bottom: 2px solid #d0d0d0; }
 
 
 #menu-icon {

@@ -1,31 +1,3 @@
-@font-face {
-    font-family: Inconsolata;
-    src: url("/assets/fonts/Inconsolata-Regular.ttf") format('truetype');
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: Inconsolata;
-    src: url("/assets/fonts/Inconsolata-Medium.ttf") format('truetype');
-    font-weight: 500;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: Inconsolata;
-    src: url("/assets/fonts/Inconsolata-SemiBold.ttf") format('truetype');
-    font-weight: 600;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: Inconsolata;
-    src: url("/assets/fonts/Inconsolata-Bold.ttf") format('truetype');
-    font-weight: 700;
-    font-style: normal;
-}
-
 .hljs{
     font-family: Inconsolata, monospace;
     font-weight: 400;
@@ -61,9 +33,9 @@
 }
 .hljs-subst{
 }
+color: rgb(219, 174, 86);
 .hljs-class .hljs-title, .hljs-type{
     /* color:rgb(240, 190, 39); */
-    color: rgb(219, 174, 86);
     font-weight:500;
 }
 .hljs-attribute,.hljs-name,.hljs-tag{
