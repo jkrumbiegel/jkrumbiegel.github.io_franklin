@@ -1,16 +1,16 @@
 @def published = "2020-11-21"
-@def title = "PipelessPipes.jl - Even More Convenient Piping"
+@def title = "Chain.jl - Even More Convenient Piping"
 @def authors = "Julius Krumbiegel"
-@def rss = "PipelessPipes.jl - Even More Convenient Piping"
+@def rss = "Chain.jl - Even More Convenient Piping"
 @def rss_pubdate = Date(2020, 11, 21)
 @def tags = ["julia"]
 
 
-# PipelessPipes.jl - Even More Convenient Piping
+# Chain.jl - Even More Convenient Piping
 
 ![magritte](/assets/2020-11-21-pipeless-pipes/magritte.png)
 
-[PipelessPipes.jl](https://github.com/jkrumbiegel/PipelessPipes.jl) is a new Julia macro package for piping which I recently wrote because I wasn't quite satisfied with the available options.
+[Chain.jl](https://github.com/jkrumbiegel/Chain.jl) is a new Julia macro package for piping which I recently wrote because I wasn't quite satisfied with the available options.
 In short, it allows to omit pipe operators, it implicitly assumes first argument piping if not otherwise stated explicitly, it allows for more helpful error highlighting and enables you to interject arbitrary statements into the pipeline for debugging.
 
 Read on if you don't yet know how piping works or are interested in the motivation and reasoning behind writing a macro package like this.
@@ -151,21 +151,21 @@ Actually, typing `|>` at all is annoying, I find.
 Additionally, we can see that three out of four functions take the df as the first argument.
 Actually, most functions, especially those around DataFrames.jl, do take the "main" argument as the first one, although it's not all functions, as you can see with `filter`.
 
-There is some optimization potential here to make everything as convenient and legible as possible, which led me to create `PipelessPipes.jl`.
+There is some optimization potential here to make everything as convenient and legible as possible, which led me to create `Chain.jl`.
 
-## PipelessPipes.jl
+## Chain.jl
 
-PipelessPipes does away with the pipe operator, because we don't really need it if we mark our whole block as one big pipe anyway.
+Chain.jl does away with the pipe operator, because we don't really need it if we mark our whole block as one big pipe anyway.
 This saves typing and solves the dangling operator issue when commenting out lines from the end.
 
-We just use the `@_` macro to treat every expression in the following block (usually one expression is what's happening within one line) as one step of our pipe.
+We just use the `@chain` macro to treat every expression in the following block (usually one expression is what's happening within one line) as one step of our pipe.
 
 Our example therefore turns into this:
 
 ```julia
-using PipelessPipes
+using Chain
 
-@_ df begin
+@chain df begin
     select(_, Not(:id))
     filter(row -> row.weight < 100, _)
     groupby(_, (:color, :shape))
@@ -180,7 +180,7 @@ So we introduce a rule that any expression without an underscore gets an implici
 Then our example turns into this:
 
 ```julia
-@_ df begin
+@chain df begin
     select(Not(:id))
     filter(row -> row.weight < 100, _)
     groupby((:color, :shape))
@@ -188,9 +188,9 @@ Then our example turns into this:
 end
 ```
 
-Now there is basically no redundant information in the pipe anymore, everything is encoded in the `@_` macro and the rules attached to it.
+Now there is basically no redundant information in the pipe anymore, everything is encoded in the `@chain` macro and the rules attached to it.
 
-_(As a side note, there is the `@>` macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros to Pipe.jl don't allow you to omit the first argument like `@_` does.)_
+_(As a side note, there is the `@>` macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros to Pipe.jl don't allow you to omit the first argument like `@chain` does.)_
 
 As a bonus, the error message example turns into this, clearly showing that the `groupby` line is wrong:
 
@@ -202,12 +202,12 @@ Often, I have a pipeline which doesn't work _quite_ right, but I don't know imme
 In those cases, I often want to print out some information within the pipeline, just to check if my assumptions hold.
 Most piping packages I know do not consider this possibility and have no way to execute a function that doesn't affect the following pipeline steps.
 
-PipelessPipes.jl has a special marker macro `@!` which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.
+Chain.jl has a special marker macro `@!` which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.
 
 For example, if we wanted to check for some reason how much data we have left after filtering, we could do this:
 
 ```julia
-@_ df begin
+@chain df begin
     select(Not(:id))
     filter(row -> row.weight < 100, _)
     @! println("There are $(nrow(_)) rows after filtering.")
@@ -222,4 +222,4 @@ Note that in these special lines, there is no implicit insertion of an underscor
 ## Conclusion
 
 I hope you have seen how macros can allow you to bend Julia's syntax to your will and impose your own rules in order to maximize clarity and remove redundancy.
-If you want more information about the macro or look at the source code (it's quite short), check out the [Github repository](https://github.com/jkrumbiegel/PipelessPipes.jl).
+If you want more information about the macro or look at the source code (it's quite short), check out the [Github repository](https://github.com/jkrumbiegel/Chain.jl).
