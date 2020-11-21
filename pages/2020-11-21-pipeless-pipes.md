@@ -11,7 +11,7 @@
 [PipelessPipes.jl](https://github.com/jkrumbiegel/PipelessPipes.jl) is a new Julia macro package for piping which I recently wrote because I wasn't quite satisfied with the available options.
 In short, it allows to omit pipe operators, it implicitly assumes first argument piping if not otherwise stated explicitly, it allows for more helpful error highlighting and enables you to interject arbitrary statements into the pipeline for debugging.
 
-Read on if you don't yet know how piping works or are interested in the motivation behind the new package.
+Read on if you don't yet know how piping works or are interested in the motivation and reasoning behind writing a macro package like this.
 
 ## What Is Piping?
 
