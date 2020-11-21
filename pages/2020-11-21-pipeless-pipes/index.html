@@ -79,7 +79,7 @@ combined <span class=hljs-keyword >=</span> <span class=hljs-built_in >combine</
     <span class=hljs-built_in >combine</span>(<span class=hljs-symbol >:weight</span> <span class=hljs-built_in >=&gt;</span> sum <span class=hljs-built_in >=&gt;</span> <span class=hljs-built_in >:</span>total_weight)
 <span class=hljs-keyword >end</span></code></pre>
 <p>Now there is basically no redundant information in the pipe anymore, everything is encoded in the <code>@_</code> macro and the rules attached to it.</p>
-<p><em>&#40;As a side note, there is the <code>@&gt;</code> macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros don&#39;t allow you to omit the first argument like <code>@_</code> does.&#41;</em></p>
+<p><em>&#40;As a side note, there is the <code>@&gt;</code> macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros to Pipe.jl don&#39;t allow you to omit the first argument like <code>@_</code> does.&#41;</em></p>
 <p>As a bonus, the error message example turns into this, clearly showing that the <code>groupby</code> line is wrong:</p>
 <p><img src="/assets/2020-11-21-pipeless-pipes/pipeless.png" alt=pipeless  /></p>
 <h3 id=interjecting_debugging_statements ><a href="#interjecting_debugging_statements">Interjecting Debugging Statements</a></h3>
