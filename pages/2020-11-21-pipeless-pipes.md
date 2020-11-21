@@ -154,7 +154,7 @@ There is some optimization potential here to make everything as convenient and l
 ## PipelessPipes.jl
 
 PipelessPipes does away with the pipe operator, because we don't really need it if we mark our whole block as one big pipe anyway.
-This solves the dangling operator issue when commenting out lines from the end.
+This saves typing and solves the dangling operator issue when commenting out lines from the end.
 
 We just use the `@_` macro to treat every expression in the following block (usually one expression is what's happening within one line) as one step of our pipe.
 
