@@ -59,7 +59,7 @@ combined <span class=hljs-keyword >=</span> <span class=hljs-built_in >combine</
 <p>Additionally, we can see that three out of four functions take the df as the first argument. Actually, most functions, especially those around DataFrames.jl, do take the &quot;main&quot; argument as the first one, although it&#39;s not all functions, as you can see with <code>filter</code>.</p>
 <p>There is some optimization potential here to make everything as convenient and legible as possible, which led me to create <code>PipelessPipes.jl</code>.</p>
 <h2 id=pipelesspipesjl ><a href="#pipelesspipesjl">PipelessPipes.jl</a></h2>
-<p>PipelessPipes does away with the pipe operator, because we don&#39;t really need it if we mark our whole block as one big pipe anyway. This solves the dangling operator issue when commenting out lines from the end.</p>
+<p>PipelessPipes does away with the pipe operator, because we don&#39;t really need it if we mark our whole block as one big pipe anyway. This saves typing and solves the dangling operator issue when commenting out lines from the end.</p>
 <p>We just use the <code>@_</code> macro to treat every expression in the following block &#40;usually one expression is what&#39;s happening within one line&#41; as one step of our pipe.</p>
 <p>Our example therefore turns into this:</p>
 <pre><code class="julia hljs"><span class=hljs-keyword >using</span> PipelessPipes
