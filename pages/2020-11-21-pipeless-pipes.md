@@ -8,6 +8,8 @@
 
 # PipelessPipes.jl - Even More Convenient Piping
 
+![magritte](/assets/2020-11-21-pipeless-pipes/magritte.png)
+
 [PipelessPipes.jl](https://github.com/jkrumbiegel/PipelessPipes.jl) is a new Julia macro package for piping which I recently wrote because I wasn't quite satisfied with the available options.
 In short, it allows to omit pipe operators, it implicitly assumes first argument piping if not otherwise stated explicitly, it allows for more helpful error highlighting and enables you to interject arbitrary statements into the pipeline for debugging.
 
