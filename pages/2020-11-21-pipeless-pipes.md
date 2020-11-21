@@ -56,9 +56,20 @@ How many transformation steps are there, and what do they do?
 There's a `select`, then a `filter`, then a `groupby` and then a `combine` transformation.
 It takes some time to untangle that.
 
+We can clean up the order if we use temporary variables:
+
+```julia
+selected = select(df, Not(:id))
+filtered = filter(row -> row.weight < 100, selected)
+grouped = groupby(filtered, [:color, :shape])
+combined = combine(grouped, :weight => sum => :total_weight)
+```
+
+Now the order is good, but we really don't want to write a temp variable for each line. What can we do?
+
 ## Original Pipes
 
-So here's another version using Julia's `|>` pipe operator, where the expression `x |> f` ist the same as `f(x)`, just written sequentially (like a _pipeline_).
+Here's another version using Julia's `|>` pipe operator, where the expression `x |> f` ist the same as `f(x)`, just written sequentially (like a _pipeline_).
 
 
 ```julia
