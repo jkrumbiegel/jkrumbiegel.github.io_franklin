@@ -202,7 +202,7 @@ Often, I have a pipeline which doesn't work _quite_ right, but I don't know imme
 In those cases, I often want to print out some information within the pipeline, just to check if my assumptions hold.
 Most piping packages I know do not consider this possibility and have no way to execute a function that doesn't affect the following pipeline steps.
 
-Chain.jl has a special marker macro `@!` which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.
+Chain.jl has a special marker macro `@aside` which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.
 
 For example, if we wanted to check for some reason how much data we have left after filtering, we could do this:
 
@@ -210,13 +210,13 @@ For example, if we wanted to check for some reason how much data we have left af
 @chain df begin
     select(Not(:id))
     filter(row -> row.weight < 100, _)
-    @! println("There are $(nrow(_)) rows after filtering.")
+    @aside println("There are $(nrow(_)) rows after filtering.")
     groupby([:color, :shape])
     combine(:weight => sum => :total_weight)
 end
 ```
 
-As you can see, the `@!` clearly marks that there's something different going on in the third line, and we can still use the `_` to easily refer to the current result.
+As you can see, the `@aside` clearly marks that there's something different going on in the third line, and we can still use the `_` to easily refer to the current result.
 Note that in these special lines, there is no implicit insertion of an underscore into an expression without one, because it would be inconvenient not to be able to use a simple `println("step 5 done")`, for example.
 
 ## Conclusion
