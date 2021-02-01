@@ -31,10 +31,12 @@
     color:#5c87ca;
     font-weight:700;
 }
-.hljs-subst{
-}
-color: rgb(219, 174, 86);
+
+/* .hljs-subst{
+} */
+
 .hljs-class .hljs-title, .hljs-type{
+    color: rgb(219, 174, 86);
     /* color:rgb(240, 190, 39); */
     font-weight:500;
 }

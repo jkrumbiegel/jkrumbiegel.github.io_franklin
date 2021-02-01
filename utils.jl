@@ -67,3 +67,64 @@ function hfun_blogposts()
 
     return repr(div(class = "posts", yeargroups))
 end
+
+
+function hfun_generate_gallery(params)
+    entries = locvar(only(params))
+    div = m("div")
+    img = m("img")
+    span = m("span")
+    a = m("a")
+
+    mainfolder = "photography"
+
+    # clear md's and regenerate
+    for file in filter(endswith(".md"), readdir(mainfolder, join = true))
+        rm(file)
+    end
+
+    galleryentries = []
+
+    for (entryname, info) in entries
+        assetfolder = joinpath("_assets", "photos", entryname)
+        originalsfolder = joinpath(assetfolder, "resized")
+
+        imagefiles = filter(endswith(".jpg"), readdir(originalsfolder))
+
+        originalsfolder_web = joinpath("/assets", "photos", entryname, "resized")
+        titlephoto = get(info, :titlephoto, imagefiles[1])
+        titlephotopath = joinpath(originalsfolder_web, titlephoto)
+
+        d = a(
+            href = joinpath("/", mainfolder, entryname),
+            div(
+                class = "photogrid-entry",
+                span(info.title),
+                img(src = titlephotopath, class = "gridimage")
+            )
+        )
+        push!(galleryentries, d)
+
+        open(joinpath(mainfolder, "$entryname.md"), "w") do f
+            println(f, "@@photopage")
+            println(f, "@def title = \"$(info.title)\"")
+            println(f, "# $(info.title)")
+            println(f, "~~~")
+            println(f, photogallery_html(imagefiles, originalsfolder_web))
+            println(f, "~~~")
+            println(f, "@@")
+        end
+    end
+
+    div(galleryentries, class = "photogrid") |> repr
+end
+
+function photogallery_html(imagefiles, originalsfolder_web)
+    div = m("div")
+    img = m("img")
+
+    div(
+        [img(src = joinpath(originalsfolder_web, im)) for im in imagefiles],
+        class = "photocolumn"
+    )
+end
