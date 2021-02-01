@@ -1,12 +1,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>Thoughts and Priors</title>
+  <title><![CDATA[Thoughts and Priors]]></title>
   <description><![CDATA[Neuroscientific research and Julia programming
 ]]></description>
   <link>https://jkrumbiegel.github.io/</link>
   <atom:link href="https://jkrumbiegel.github.io/feed.xml" rel="self" type="application/rss+xml" />
   <item>
-    <title>Chain.jl - Even More Convenient Piping</title>
+    <title><![CDATA[Chain.jl - Even More Convenient Piping]]></title>
     <link>https://jkrumbiegel.github.io/pages/2020-11-21-pipeless-pipes/</link>
     <description><![CDATA[Chain.jl - Even More Convenient Piping
 <br><a href="https://jkrumbiegel.github.io/pages/2020-11-21-pipeless-pipes/">Read more</a>]]></description>
@@ -14,7 +14,7 @@
     <pubDate>Sat, 21 Nov 2020 00:00:00 UT</pubDate>
   </item>
   <item>
-    <title>Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia</title>
+    <title><![CDATA[Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia]]></title>
     <link>https://jkrumbiegel.github.io/pages/2020-11-15-makielayout/</link>
     <description><![CDATA[Try MakieLayout - Perfect Layouts For Interactive Scientific Graphics in Julia
 <br><a href="https://jkrumbiegel.github.io/pages/2020-11-15-makielayout/">Read more</a>]]></description>
@@ -22,7 +22,7 @@
     <pubDate>Sun, 15 Nov 2020 00:00:00 UT</pubDate>
   </item>
   <item>
-    <title>Tuples and Vectors, Allocations and Performance for Beginners</title>
+    <title><![CDATA[Tuples and Vectors, Allocations and Performance for Beginners]]></title>
     <link>https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/</link>
     <description><![CDATA[An Intuitive Understanding of Types, Allocations and Performance
 <br><a href="https://jkrumbiegel.github.io/pages/2020-10-31-tuples-and-vectors/">Read more</a>]]></description>
@@ -30,7 +30,7 @@
     <pubDate>Sat, 31 Oct 2020 00:00:00 UT</pubDate>
   </item>
   <item>
-    <title>Julia Helps To Bridge The Gap Between User and Creator</title>
+    <title><![CDATA[Julia Helps To Bridge The Gap Between User and Creator]]></title>
     <link>https://jkrumbiegel.github.io/pages/2020-10-23-julia-bridge/</link>
     <description><![CDATA[How Julia eases the path to contributing to scientific software
 <br><a href="https://jkrumbiegel.github.io/pages/2020-10-23-julia-bridge/">Read more</a>]]></description>
