@@ -78,6 +78,7 @@ function hfun_generate_gallery(params)
 
     mainfolder = "photography"
 
+    mkpath(mainfolder)
     # clear md's and regenerate
     for file in filter(endswith(".md"), readdir(mainfolder, join = true))
         rm(file)
