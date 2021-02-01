@@ -86,8 +86,8 @@ html {
 
 .franklin-content {
     position: relative;
-    padding-left: 12.5%;
-    padding-right: 12.5%;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
     line-height: 1.35em;
     text-align: justify;
     text-justify: auto;
@@ -104,8 +104,8 @@ html {
 /* on narrow device, reduce margins */
 @media (max-width: 480px) {
     .franklin-content {
-        padding-left: 6%;
-        padding-right: 6%; }
+        padding-left: 0.5em;
+        padding-right: 0.5em; }
     }
 
 /* ==================================================================

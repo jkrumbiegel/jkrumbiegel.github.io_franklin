@@ -62,15 +62,15 @@ header li a:hover {
 
 @media (max-width: 480px) {
     header {
-        padding-left: 6%;
-        padding-right:6%;
+        padding-left:  0.5em;
+        padding-right: 0.5em;
     }
 }
 
 @media (min-width: 481px) {
     header {
-        padding-left: 12.5%;
-        padding-right: 12.5%; }
+        padding-left: 0.5em;
+        padding-right: 0.5em; }
     }
 
 /* wide display: enforce maximum width of header to match content */
@@ -114,11 +114,9 @@ instead, display a burger menu.
         position: absolute;
         /* padding: 20px; */
         background: #fff;
-        border: 1px solid #444;
         right: 50px;
-        top: 60px;
-        width: 30%;
-        border-radius: 4px 0 4px 4px;
+        top: 58px;
+        box-shadow: 0px 2px 8px 2px rgba(0, 0, 0, 0.1);
         z-index: 1;}
     nav li {
         text-align: left;
