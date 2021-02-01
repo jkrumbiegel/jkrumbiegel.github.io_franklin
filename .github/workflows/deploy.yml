@@ -38,6 +38,7 @@ jobs:
             @show readdir();
             @show Franklin.HIGHLIGHTJS[] = joinpath(pwd(), "_libs/highlight/julia.highlight.js");
             Pkg.activate("."); Pkg.instantiate();
+            optimize();
             optimize()'
     - name: Build and Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
