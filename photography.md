@@ -2,6 +2,10 @@
 
 +++
 entries = [
+    "alster" => (
+        title = "Alster",
+        titlephoto = "DSC07700.jpg",
+    ),
     "eisbach" => (
         title = "Eisbach",
         titlephoto = "DSC06848.jpg",
