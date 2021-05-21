@@ -18,6 +18,8 @@ My goal is always to write as little unnecessary boilerplate code as possible, w
 
 Here's the final code, afterwards I'll go through the different statements one by one.
 
+The versions used were CSV v0.8.4, Chain v0.4.5 and DataFrames v1.1.1 with Julia 1.6.
+
 ```julia
 using Chain, DataFrames, CSV, Downloads
 
