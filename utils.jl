@@ -47,8 +47,9 @@ function hfun_blogposts()
     end |> DataFrame
 
     sort!(pages, order(:date, rev = true))
+    transform!(pages, :year => (x -> -x) => :negative_year)
 
-    yeargroups = map(collect(groupby(pages, :year))) do group
+    yeargroups = map(collect(groupby(pages, :negative_year, sort = true))) do group
 
         pagedivs = map(eachrow(group)) do page
             li(
@@ -71,6 +72,12 @@ end
 
 function hfun_generate_gallery(params)
     entries = locvar(only(params))
+
+    if isnothing(entries)
+        @warn "No entries found"
+        return ""
+    end
+
     div = m("div")
     img = m("img")
     span = m("span")
