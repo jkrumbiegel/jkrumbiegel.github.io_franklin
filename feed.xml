@@ -23,6 +23,27 @@
 
 <item>
   <title>
+    <![CDATA[  Julia macros for beginners  ]]>
+  </title>
+  <link> https://jkrumbiegel.github.io/pages/2021-06-07-macros-for-beginners/index.html </link>
+  <guid> https://jkrumbiegel.github.io/pages/2021-06-07-macros-for-beginners/index.html </guid>
+  <description>
+    <![CDATA[  Julia macros for beginners  ]]>
+  </description>  
+    
+  <pubDate>Mon, 07 Jun 2021 00:00:00 +0000</pubDate>  
+  
+  <author> Julius Krumbiegel </author>
+  
+  
+  <atom:author>
+    <atom:name>Julius Krumbiegel</atom:name>
+  </atom:author>
+        
+</item>
+
+<item>
+  <title>
     <![CDATA[  Reading data from the web with CSV.jl, DataFrames.jl and Chain.jl  ]]>
   </title>
   <link> https://jkrumbiegel.github.io/pages/2021-05-20-reading-data-from-web/index.html </link>
