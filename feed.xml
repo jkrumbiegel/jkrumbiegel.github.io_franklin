@@ -23,6 +23,27 @@
 
 <item>
   <title>
+    <![CDATA[  Analyzing international football results with Julia  ]]>
+  </title>
+  <link> https://jkrumbiegel.github.io/pages/2021-06-20-football-data-analysis/index.html </link>
+  <guid> https://jkrumbiegel.github.io/pages/2021-06-20-football-data-analysis/index.html </guid>
+  <description>
+    <![CDATA[  Analyzing international football results with Julia  ]]>
+  </description>  
+    
+  <pubDate>Mon, 21 Jun 2021 00:00:00 +0000</pubDate>  
+  
+  <author> Julius Krumbiegel </author>
+  
+  
+  <atom:author>
+    <atom:name>Julius Krumbiegel</atom:name>
+  </atom:author>
+        
+</item>
+
+<item>
+  <title>
     <![CDATA[  Julia macros for beginners  ]]>
   </title>
   <link> https://jkrumbiegel.github.io/pages/2021-06-07-macros-for-beginners/index.html </link>
