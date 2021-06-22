@@ -176,4 +176,11 @@ span.post-date {
     margin-bottom: 1em;
 }
 
+/* .data-frame thead tr:nth-child(1) th {
+    font-weight: bold;
+    color: gray;
+} */
 
+.data-frame thead tr:nth-child(2) th {
+    color: #b0b0b0;
+}

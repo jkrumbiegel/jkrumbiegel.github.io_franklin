@@ -145,13 +145,43 @@ html {
 .franklin-content h6 a:hover {text-decoration: none;}
 
 .franklin-content table {
-    margin-left: auto;
-    margin-right: auto;
+    overflow-x: auto;
+    font-size: 0.9em;
     border-collapse: collapse;
-    text-align: center;}
-.franklin-content th, td{
-    padding: 10px;
-    border: 1px solid black;}
+    line-height: 1.2em;
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
+}
+
+.franklin-content th, td, tr{
+    padding: 0;
+    border: 0;
+}
+
+.franklin-content td {
+    padding: 0.3em;
+}
+
+.franklin-content th {
+    padding: 0.3em;
+    /* background-color: #f0f0f0; */
+    font-style: normal;
+    font-weight: normal;
+}
+
+.franklin-content thead{
+    background-color: #f9f9f9;
+    border-bottom: 2px solid #eee;
+}
+
+.franklin-content tbody tr:nth-child(even){
+    background-color: #f9f9f9;
+}
+
+.franklin-content thead > tr{
+    background-color: transparent;
+}
 
 .franklin-content blockquote {
     background: #eeeeee;
