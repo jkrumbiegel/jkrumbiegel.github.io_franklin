@@ -184,3 +184,7 @@ span.post-date {
 .data-frame thead tr:nth-child(2) th {
     color: #b0b0b0;
 }
+
+.data-frame table {
+    white-space: nowrap;
+}
