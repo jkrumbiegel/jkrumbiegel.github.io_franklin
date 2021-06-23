@@ -44,39 +44,39 @@
 <h2 id="what_is_piping"><a href="#what_is_piping" class="header-anchor">What Is Piping?</a></h2>
 <p>In case you don&#39;t know it yet, piping is a way of applying a number of functions to an input in sequence. The output of the first function is fed to the second one, the output of the second is fed to the third one, and so on. This way of writing is often found in data science applications, because it fits the workflow of passing one dataframe through multiple transformations very well.</p>
 <p>Here&#39;s one example without piping. Let&#39;s start with some arbitrary dataframe, although this article is only about syntax:</p>
-<pre><code class="language-julia">using DataFrames
+<pre><code class="julia hljs"><span class="hljs-keyword">using</span> DataFrames
 
-df &#61; DataFrame&#40;
-    :id &#61;&gt; 1:100,
-    :color &#61;&gt; rand&#40;&#91;&quot;red&quot;, &quot;green&quot;, &quot;blue&quot;&#93;, 100&#41;,
-    :shape &#61;&gt; rand&#40;&#91;&quot;round&quot;, &quot;square&quot;&#93;, 100&#41;,
-    :weight &#61;&gt; 5 .* randn&#40;100&#41; .&#43; 100,
-&#41;</code></pre>
+df <span class="hljs-keyword">=</span> <span class="hljs-built_in">DataFrame</span>(
+    <span class="hljs-symbol">:id</span> <span class="hljs-built_in">=&gt;</span> <span class="hljs-number">1</span><span class="hljs-built_in">:</span><span class="hljs-number">100</span>,
+    <span class="hljs-symbol">:color</span> <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">rand</span>([<span class="hljs-string">&quot;red&quot;</span>, <span class="hljs-string">&quot;green&quot;</span>, <span class="hljs-string">&quot;blue&quot;</span>], <span class="hljs-number">100</span>),
+    <span class="hljs-symbol">:shape</span> <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">rand</span>([<span class="hljs-string">&quot;round&quot;</span>, <span class="hljs-string">&quot;square&quot;</span>], <span class="hljs-number">100</span>),
+    <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> <span class="hljs-number">5</span> <span class="hljs-built_in">.</span><span class="hljs-built_in">*</span> <span class="hljs-built_in">randn</span>(<span class="hljs-number">100</span>) <span class="hljs-built_in">.</span><span class="hljs-built_in">+</span> <span class="hljs-number">100</span>,
+)</code></pre>
 <p>Now lets calculate something with this dataframe:</p>
-<pre><code class="language-julia">combine&#40;groupby&#40;filter&#40;row -&gt; row.weight &lt; 100, select&#40;df, Not&#40;:id&#41;&#41;, &#91;:color, :shape&#93;&#41;, :weight &#61;&gt; sum &#61;&gt; :total_weight&#41;</code></pre>
+<pre><code class="julia hljs"><span class="hljs-built_in">combine</span>(<span class="hljs-built_in">groupby</span>(<span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, <span class="hljs-built_in">select</span>(df, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>)), [<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>]), <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)</code></pre>
 <p>That&#39;s pretty hard to read, here&#39;s the same thing with indentation:</p>
-<pre><code class="language-julia">combine&#40;
-    groupby&#40;
-        filter&#40;row -&gt; row.weight &lt; 100,
-            select&#40;df, Not&#40;:id&#41;&#41;
-        &#41;,
-        &#91;:color, :shape&#93;&#41;,
-    :weight &#61;&gt; sum &#61;&gt; :total_weight
-&#41;</code></pre>
+<pre><code class="julia hljs"><span class="hljs-built_in">combine</span>(
+    <span class="hljs-built_in">groupby</span>(
+        <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>,
+            <span class="hljs-built_in">select</span>(df, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>))
+        ),
+        [<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>]),
+    <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight
+)</code></pre>
 <p>That&#39;s better, but still not very easy to read because of the nesting levels. How many transformation steps are there, and what do they do? There&#39;s a <code>select</code>, then a <code>filter</code>, then a <code>groupby</code> and then a <code>combine</code> transformation. It takes some time to untangle that.</p>
 <p>We can clean up the order if we use temporary variables:</p>
-<pre><code class="language-julia">selected &#61; select&#40;df, Not&#40;:id&#41;&#41;
-filtered &#61; filter&#40;row -&gt; row.weight &lt; 100, selected&#41;
-grouped &#61; groupby&#40;filtered, &#91;:color, :shape&#93;&#41;
-combined &#61; combine&#40;grouped, :weight &#61;&gt; sum &#61;&gt; :total_weight&#41;</code></pre>
+<pre><code class="julia hljs">selected <span class="hljs-keyword">=</span> <span class="hljs-built_in">select</span>(df, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>))
+filtered <span class="hljs-keyword">=</span> <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, selected)
+grouped <span class="hljs-keyword">=</span> <span class="hljs-built_in">groupby</span>(filtered, [<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>])
+combined <span class="hljs-keyword">=</span> <span class="hljs-built_in">combine</span>(grouped, <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)</code></pre>
 <p>Now the order is good, but we really don&#39;t want to write a temp variable for each line. What can we do?</p>
 <h2 id="original_pipes"><a href="#original_pipes" class="header-anchor">Original Pipes</a></h2>
 <p>Here&#39;s another version using Julia&#39;s <code>|&gt;</code> pipe operator, where the expression <code>x |&gt; f</code> ist the same as <code>f&#40;x&#41;</code>, just written sequentially &#40;like a <em>pipeline</em>&#41;.</p>
-<pre><code class="language-julia">df |&gt;
-    x -&gt; select&#40;x, Not&#40;:id&#41;&#41; |&gt;
-    x -&gt; filter&#40;row -&gt; row.weight &lt; 100, x&#41; |&gt;
-    x -&gt; groupby&#40;x, &#91;:color, :shape&#93;&#41; |&gt;
-    x -&gt; combine&#40;x, :weight &#61;&gt; sum &#61;&gt; :total_weight&#41;</code></pre>
+<pre><code class="julia hljs">df <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    x <span class="hljs-built_in">-&gt;</span> <span class="hljs-built_in">select</span>(x, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>)) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    x <span class="hljs-built_in">-&gt;</span> <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, x) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    x <span class="hljs-built_in">-&gt;</span> <span class="hljs-built_in">groupby</span>(x, [<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>]) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    x <span class="hljs-built_in">-&gt;</span> <span class="hljs-built_in">combine</span>(x, <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)</code></pre>
 <p>Two things stick out: There are obviously four steps to this pipeline, and they are easy to read in order, which is nice. We can read <code>select</code>, <code>filter</code>, <code>groupby</code> and <code>combine</code> from top to bottom.</p>
 <p>But we also have a lot of anonymous functions here with all those <code>x -&gt;</code> statements.</p>
 <p>We need to write all these anonymous functions because the <code>|&gt;</code> operator can only do <code>f&#40;x&#41;</code>, that means it can take a function and exactly one argument and apply the function to it. It doesn&#39;t allow for giving two arguments, which we need for each of the transformations to specify what we&#39;re actually doing with our dataframe. Just <code>groupby&#40;df&#41;</code> doesn&#39;t do anything. That&#39;s why we convert each of our two-argument function calls into a mini-function that takes only one argument. We&#39;re fixing the second argument within each anonymous functions, which is a form of <a href="https://en.wikipedia.org/wiki/Currying">Currying</a>.</p>
@@ -84,22 +84,22 @@ combined &#61; combine&#40;grouped, :weight &#61;&gt; sum &#61;&gt; :total_weigh
 <p>Still, the sequential style is much nicer for our purpose than the nested style, so how can we improve on this? We can&#39;t actually get much better with Julia&#39;s normal syntax, so from here on out, we need to go into macro territory.</p>
 <h2 id="pipejl"><a href="#pipejl" class="header-anchor">Pipe.jl</a></h2>
 <p>If we think about ways we can simplify the pipe example with macros, the first idea would be to eliminate the <code>x -&gt; ...</code> overhead that repeats every line. That&#39;s what Pipe.jl&#39;s <code>@pipe</code> macro does. It replaces <code>_</code> in every right-hand expression with the result of the left-hand expression. We can use it to rewrite our example like this:</p>
-<pre><code class="language-julia">using Pipe
+<pre><code class="julia hljs"><span class="hljs-keyword">using</span> <span class="hljs-type">Pipe</span>
 
-@pipe df |&gt;
-    select&#40;_, Not&#40;:id&#41;&#41; |&gt;
-    filter&#40;row -&gt; row.weight &lt; 100, _&#41; |&gt;
-    groupby&#40;_, &#91;:color, :shape&#93;&#41; |&gt;
-    combine&#40;_, :weight &#61;&gt; sum &#61;&gt; :total_weight&#41;</code></pre>
+<span class="hljs-meta">@pipe</span> df <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">select</span>(_, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>)) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, _) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">groupby</span>(_, [<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>]) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">combine</span>(_, <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)</code></pre>
 <p>This is much nicer to read, all the anonymous functions are gone. There are some things that could be better, though.</p>
 <p>One is that the whole pipe errors as a whole if it errors, which doesn&#39;t help when debugging. Look at this variation of our example:</p>
-<pre><code class="language-julia">@pipe df |&gt;
-    select&#40;_, Not&#40;:id&#41;&#41; |&gt;
-    filter&#40;row -&gt; row.weight &lt; 100, _&#41; |&gt;
-    groupby&#40;_, &#40;:color, :shape&#41;&#41; |&gt;
-    combine&#40;_, :weight &#61;&gt; sum &#61;&gt; :total_weight&#41;</code></pre>
+<pre><code class="julia hljs"><span class="hljs-meta">@pipe</span> df <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">select</span>(_, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>)) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, _) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">groupby</span>(_, (<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>)) <span class="hljs-built_in">|</span><span class="hljs-built_in">&gt;</span>
+    <span class="hljs-built_in">combine</span>(_, <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)</code></pre>
 <p>If we run it, the error message tells us this, which is not immediately obvious:</p>
-<pre><code class="language-julia">ERROR: LoadError: MethodError: no method matching getindex&#40;::DataFrames.Index, ::Tuple&#123;Symbol, Symbol&#125;&#41;</code></pre>
+<pre><code class="julia hljs">ERROR<span class="hljs-built_in">:</span> <span class="hljs-type">LoadError</span><span class="hljs-built_in">:</span> <span class="hljs-type">MethodError</span><span class="hljs-built_in">:</span> no method matching <span class="hljs-built_in">getindex</span>(<span class="hljs-built_in">::</span><span class="hljs-type">DataFrames<span class="hljs-built_in">.</span></span><span class="hljs-type">Index</span>, <span class="hljs-built_in">::</span><span class="hljs-type">Tuple{Symbol, Symbol}</span>)</code></pre>
 <p>And this is what VSCode marks red, just the entry point of the pipe:</p>
 <p><img src="/assets/2020-11-21-pipeless-pipes/pipe.png" alt="pipe.jl" /></p>
 <p>The actual mistake is the tuple in the <code>groupby</code> line. In more complex pipelines, it can take a while until you found your culprit.</p>
@@ -110,22 +110,22 @@ combined &#61; combine&#40;grouped, :weight &#61;&gt; sum &#61;&gt; :total_weigh
 <p>Chain.jl does away with the pipe operator, because we don&#39;t really need it if we mark our whole block as one big pipe anyway. This saves typing and solves the dangling operator issue when commenting out lines from the end.</p>
 <p>We just use the <code>@chain</code> macro to treat every expression in the following block &#40;usually one expression is what&#39;s happening within one line&#41; as one step of our pipe.</p>
 <p>Our example therefore turns into this:</p>
-<pre><code class="language-julia">using Chain
+<pre><code class="julia hljs"><span class="hljs-keyword">using</span> Chain
 
-@chain df begin
-    select&#40;_, Not&#40;:id&#41;&#41;
-    filter&#40;row -&gt; row.weight &lt; 100, _&#41;
-    groupby&#40;_, &#40;:color, :shape&#41;&#41;
-    combine&#40;_, :weight &#61;&gt; sum &#61;&gt; :total_weight&#41;
-end</code></pre>
+<span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
+    <span class="hljs-built_in">select</span>(_, <span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>))
+    <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, _)
+    <span class="hljs-built_in">groupby</span>(_, (<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>))
+    <span class="hljs-built_in">combine</span>(_, <span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)
+<span class="hljs-keyword">end</span></code></pre>
 <p>Now, there&#39;s one more convenience optimization left on the table, and that&#39;s all the underscores in first argument position. It would be nice to be able to omit those as well, because most functions will take the thing to pipe as the first argument.</p>
 <p>So we introduce a rule that any expression without an underscore gets an implicit underscore in the first argument position. Then our example turns into this:</p>
-<pre><code class="language-julia">@chain df begin
-    select&#40;Not&#40;:id&#41;&#41;
-    filter&#40;row -&gt; row.weight &lt; 100, _&#41;
-    groupby&#40;&#40;:color, :shape&#41;&#41;
-    combine&#40;:weight &#61;&gt; sum &#61;&gt; :total_weight&#41;
-end</code></pre>
+<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
+    <span class="hljs-built_in">select</span>(<span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>))
+    <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, _)
+    <span class="hljs-built_in">groupby</span>((<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>))
+    <span class="hljs-built_in">combine</span>(<span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)
+<span class="hljs-keyword">end</span></code></pre>
 <p>Now there is basically no redundant information in the pipe anymore, everything is encoded in the <code>@chain</code> macro and the rules attached to it.</p>
 <p><em>&#40;As a side note, there is the <code>@&gt;</code> macro from Lazy.jl which does a similar transformation, but it only works with first arguments, while other similar macros to Pipe.jl don&#39;t allow you to omit the first argument like <code>@chain</code> does.&#41;</em></p>
 <p>As a bonus, the error message example turns into this, clearly showing that the <code>groupby</code> line is wrong:</p>
@@ -134,13 +134,13 @@ end</code></pre>
 <p>Often, I have a pipeline which doesn&#39;t work <em>quite</em> right, but I don&#39;t know immediately where it goes wrong. In those cases, I often want to print out some information within the pipeline, just to check if my assumptions hold. Most piping packages I know do not consider this possibility and have no way to execute a function that doesn&#39;t affect the following pipeline steps.</p>
 <p>Chain.jl has a special marker macro <code>@aside</code> which you can use to mark expressions that should just be executed without forwarding their result, instead continuing with the previous result.</p>
 <p>For example, if we wanted to check for some reason how much data we have left after filtering, we could do this:</p>
-<pre><code class="language-julia">@chain df begin
-    select&#40;Not&#40;:id&#41;&#41;
-    filter&#40;row -&gt; row.weight &lt; 100, _&#41;
-    @aside println&#40;&quot;There are &#36;&#40;nrow&#40;_&#41;&#41; rows after filtering.&quot;&#41;
-    groupby&#40;&#91;:color, :shape&#93;&#41;
-    combine&#40;:weight &#61;&gt; sum &#61;&gt; :total_weight&#41;
-end</code></pre>
+<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
+    <span class="hljs-built_in">select</span>(<span class="hljs-built_in">Not</span>(<span class="hljs-symbol">:id</span>))
+    <span class="hljs-built_in">filter</span>(row <span class="hljs-built_in">-&gt;</span> row<span class="hljs-built_in">.</span>weight <span class="hljs-built_in">&lt;</span> <span class="hljs-number">100</span>, _)
+    <span class="hljs-meta">@aside</span> <span class="hljs-built_in">println</span>(<span class="hljs-string">&quot;There are <span class="hljs-subst">$(<span class="hljs-built_in">nrow</span>(_))</span> rows after filtering.&quot;</span>)
+    <span class="hljs-built_in">groupby</span>([<span class="hljs-symbol">:color</span>, <span class="hljs-symbol">:shape</span>])
+    <span class="hljs-built_in">combine</span>(<span class="hljs-symbol">:weight</span> <span class="hljs-built_in">=&gt;</span> sum <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>total_weight)
+<span class="hljs-keyword">end</span></code></pre>
 <p>As you can see, the <code>@aside</code> clearly marks that there&#39;s something different going on in the third line, and we can still use the <code>_</code> to easily refer to the current result. Note that in these special lines, there is no implicit insertion of an underscore into an expression without one, because it would be inconvenient not to be able to use a simple <code>println&#40;&quot;step 5 done&quot;&#41;</code>, for example.</p>
 <h2 id="conclusion"><a href="#conclusion" class="header-anchor">Conclusion</a></h2>
 <p>I hope you have seen how macros can allow you to bend Julia&#39;s syntax to your will and impose your own rules in order to maximize clarity and remove redundancy. If you want more information about the macro or look at the source code &#40;it&#39;s quite short&#41;, check out the <a href="https://github.com/jkrumbiegel/Chain.jl">Github repository</a>.</p>
@@ -153,7 +153,7 @@ end</code></pre>
     
     
         <script src="/libs/highlight/julia.highlight.js"></script>
-<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
+
 
     
   </body>
