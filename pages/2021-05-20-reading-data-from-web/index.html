@@ -42,103 +42,103 @@
 <p><a href="http://homepages.wmich.edu/~hillenbr/voweldata/bigdata.dat">Here&#39;s the dataset</a> if you want to look at it. The challenge is simply that it&#39;s a non-standard file format that needs to be massaged into a form ready for CSV reading first. That means there are also no predefined column names and we don&#39;t want to do a lot of work to write all of these out manually, but use the repetitive structure. My goal is always to write as little unnecessary boilerplate code as possible, without using too much unreadable magic.</p>
 <p>Here&#39;s the final code, afterwards I&#39;ll go through the different statements one by one.</p>
 <p>The versions used were CSV v0.8.4, Chain v0.4.5 and DataFrames v1.1.1 with Julia 1.6.</p>
-<pre><code class="language-julia">using Chain, DataFrames, CSV, Downloads
+<pre><code class="julia hljs"><span class="hljs-keyword">using</span> Chain, DataFrames, CSV, Downloads
 
-@chain &quot;http://homepages.wmich.edu/~hillenbr/voweldata/bigdata.dat&quot; begin
-    Downloads.download&#40;IOBuffer&#40;&#41;&#41;
-    String&#40;take&#33;&#40;_&#41;&#41;
-    _&#91;findfirst&#40;&quot;b01ae&quot;, _&#41;&#91;1&#93;:end&#93;
-    replace&#40;r&quot; &#43;&quot; &#61;&gt; &quot; &quot;&#41;
-    replace&#40;r&quot;\s&#43;&#36;&quot;m &#61;&gt; &quot;\n&quot;&#41;
-    CSV.read&#40;IOBuffer&#40;_&#41;, DataFrame, header &#61; false,
-        missingstring &#61; &quot;0&quot;&#41;
-    rename&#40;1:30 .&#61;&gt; &#91;
+<span class="hljs-meta">@chain</span> <span class="hljs-string">&quot;http://homepages.wmich.edu/~hillenbr/voweldata/bigdata.dat&quot;</span> <span class="hljs-keyword">begin</span>
+    Downloads.download(<span class="hljs-built_in">IOBuffer</span>())
+    <span class="hljs-built_in">String</span>(take!(_))
+    _[findfirst(<span class="hljs-string">&quot;b01ae&quot;</span>, _)[<span class="hljs-number">1</span>]:<span class="hljs-keyword">end</span>]
+    replace(<span class="hljs-string">r&quot; +&quot;</span> =&gt; <span class="hljs-string">&quot; &quot;</span>)
+    replace(<span class="hljs-string">r&quot;\s+$&quot;m</span> =&gt; <span class="hljs-string">&quot;\n&quot;</span>)
+    CSV.read(<span class="hljs-built_in">IOBuffer</span>(_), DataFrame, header = <span class="hljs-literal">false</span>,
+        missingstring = <span class="hljs-string">&quot;0&quot;</span>)
+    rename(<span class="hljs-number">1</span>:<span class="hljs-number">30</span> .=&gt; [
         :filename;
         :duration_msec;
-        Symbol.&#40;&#91;&quot;f0&quot;, &quot;f1&quot;, &quot;f2&quot;, &quot;f3&quot;&#93;, &quot;_steady&quot;&#41;;
-        &#91;Symbol&#40;f, &quot;_&quot;, p&#41;
-            for p in 10:10:80
-            for f in &#91;&quot;f1&quot;, &quot;f2&quot;, &quot;f3&quot;&#93;&#93;
-    &#93;&#41;
-    transform&#40;:filename &#61;&gt;
-        ByRow&#40;f -&gt; &#40;
-            type &#61; f&#91;1&#93;,
-            number &#61; parse&#40;Int, f&#91;2:3&#93;&#41;,
-            vowel &#61; f&#91;4:5&#93;
-        &#41;&#41; &#61;&gt; AsTable&#41;
-    transform&#40;:type &#61;&gt;
-        ByRow&#40;t -&gt; Dict&#40;
-            &#39;m&#39; &#61;&gt; &quot;man&quot;,
-            &#39;w&#39; &#61;&gt; &quot;woman&quot;,
-            &#39;b&#39; &#61;&gt; &quot;boy&quot;,
-            &#39;g&#39; &#61;&gt; &quot;girl&quot;&#41;&#91;t&#93;&#41; &#61;&gt; :type&#41;
-    select&#40;1:2, 31:33, 3:30&#41;
-    CSV.write&#40;&quot;hillenbrand.csv&quot;, _&#41;
-end</code></pre>
+        <span class="hljs-built_in">Symbol</span>.([<span class="hljs-string">&quot;f0&quot;</span>, <span class="hljs-string">&quot;f1&quot;</span>, <span class="hljs-string">&quot;f2&quot;</span>, <span class="hljs-string">&quot;f3&quot;</span>], <span class="hljs-string">&quot;_steady&quot;</span>);
+        [<span class="hljs-built_in">Symbol</span>(f, <span class="hljs-string">&quot;_&quot;</span>, p)
+            <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-number">10</span>:<span class="hljs-number">10</span>:<span class="hljs-number">80</span>
+            <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;f1&quot;</span>, <span class="hljs-string">&quot;f2&quot;</span>, <span class="hljs-string">&quot;f3&quot;</span>]]
+    ])
+    transform(:filename =&gt;
+        ByRow(f -&gt; (
+            type = f[<span class="hljs-number">1</span>],
+            number = parse(<span class="hljs-built_in">Int</span>, f[<span class="hljs-number">2</span>:<span class="hljs-number">3</span>]),
+            vowel = f[<span class="hljs-number">4</span>:<span class="hljs-number">5</span>]
+        )) =&gt; AsTable)
+    transform(:type =&gt;
+        ByRow(t -&gt; <span class="hljs-built_in">Dict</span>(
+            <span class="hljs-string">&#x27;m&#x27;</span> =&gt; <span class="hljs-string">&quot;man&quot;</span>,
+            <span class="hljs-string">&#x27;w&#x27;</span> =&gt; <span class="hljs-string">&quot;woman&quot;</span>,
+            <span class="hljs-string">&#x27;b&#x27;</span> =&gt; <span class="hljs-string">&quot;boy&quot;</span>,
+            <span class="hljs-string">&#x27;g&#x27;</span> =&gt; <span class="hljs-string">&quot;girl&quot;</span>)[t]) =&gt; :type)
+    select(<span class="hljs-number">1</span>:<span class="hljs-number">2</span>, <span class="hljs-number">31</span>:<span class="hljs-number">33</span>, <span class="hljs-number">3</span>:<span class="hljs-number">30</span>)
+    CSV.write(<span class="hljs-string">&quot;hillenbrand.csv&quot;</span>, _)
+<span class="hljs-keyword">end</span></code></pre>
 <p>Ok, let&#39;s look at the parts:</p>
-<pre><code class="language-julia">@chain &quot;http://homepages.wmich.edu/~hillenbr/voweldata/bigdata.dat&quot; begin</code></pre>
+<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> <span class="hljs-string">&quot;http://homepages.wmich.edu/~hillenbr/voweldata/bigdata.dat&quot;</span> <span class="hljs-keyword">begin</span></code></pre>
 <p>First, we start a <code>@chain</code> from <code>Chain.jl</code> with the url we want to download. In a chain, we can feed the result from one expression into the first argument of the next, unless we specify a different position with the <code>_</code> placeholder.</p>
-<pre><code class="language-julia">Downloads.download&#40;IOBuffer&#40;&#41;&#41;
-String&#40;take&#33;&#40;_&#41;&#41;</code></pre>
+<pre><code class="julia hljs">Downloads.download(<span class="hljs-built_in">IOBuffer</span>())
+<span class="hljs-built_in">String</span>(take!(_))</code></pre>
 <p>We download the content at the url right into an <code>IOBuffer</code> object, which avoids creating a separate file. The IOBuffer is then converted into a string because we have to clean it up a bit.</p>
-<pre><code class="language-julia">_&#91;findfirst&#40;&quot;b01ae&quot;, _&#41;&#91;1&#93;:end&#93;
-replace&#40;r&quot; &#43;&quot; &#61;&gt; &quot; &quot;&#41;
-replace&#40;r&quot;\s&#43;&#36;&quot;m &#61;&gt; &quot;\n&quot;&#41;</code></pre>
+<pre><code class="julia hljs">_[findfirst(<span class="hljs-string">&quot;b01ae&quot;</span>, _)[<span class="hljs-number">1</span>]:<span class="hljs-keyword">end</span>]
+replace(<span class="hljs-string">r&quot; +&quot;</span> =&gt; <span class="hljs-string">&quot; &quot;</span>)
+replace(<span class="hljs-string">r&quot;\s+$&quot;m</span> =&gt; <span class="hljs-string">&quot;\n&quot;</span>)</code></pre>
 <p>The first line finds the occurence of the first part of the actual data entries, then selects only the part of the string from there on out. The second line finds all multiple spaces and replaces them with one space, while the third line removes all trailing whitespace before the end of a line. Both of these things can otherwise throw off CSV.jl when it determines how many columns there are.</p>
-<pre><code class="language-julia">CSV.read&#40;IOBuffer&#40;_&#41;, DataFrame, header &#61; false,
-    missingstring &#61; &quot;0&quot;&#41;</code></pre>
+<pre><code class="julia hljs">CSV.read(<span class="hljs-built_in">IOBuffer</span>(_), DataFrame, header = <span class="hljs-literal">false</span>,
+    missingstring = <span class="hljs-string">&quot;0&quot;</span>)</code></pre>
 <p>Now we convert the string back to an IOBuffer, so that we can use it directly with <code>CSV.read</code>. Using the string itself doesn&#39;t work, because CSV.jl would assume it&#39;s a file path. We read into a <code>DataFrame</code> and specify that there&#39;s no header, because the file has no column names. We also specify that the string &quot;0&quot; is a missing value, which is the convention of this dataset but which could easily throw off our analyses if we aren&#39;t careful. Using <code>missing</code> values forces us to acknowledge them explicitly in our analysis.</p>
-<pre><code class="language-julia">rename&#40;1:30 .&#61;&gt; &#91;
+<pre><code class="julia hljs">rename(<span class="hljs-number">1</span>:<span class="hljs-number">30</span> .=&gt; [
     :filename;
     :duration_msec;
-    Symbol.&#40;&#91;&quot;f0&quot;, &quot;f1&quot;, &quot;f2&quot;, &quot;f3&quot;&#93;, &quot;_steady&quot;&#41;;
-    &#91;Symbol&#40;f, &quot;_&quot;, p&#41;
-        for p in 10:10:80
-        for f in &#91;&quot;f1&quot;, &quot;f2&quot;, &quot;f3&quot;&#93;&#93;
-&#93;&#41;</code></pre>
+    <span class="hljs-built_in">Symbol</span>.([<span class="hljs-string">&quot;f0&quot;</span>, <span class="hljs-string">&quot;f1&quot;</span>, <span class="hljs-string">&quot;f2&quot;</span>, <span class="hljs-string">&quot;f3&quot;</span>], <span class="hljs-string">&quot;_steady&quot;</span>);
+    [<span class="hljs-built_in">Symbol</span>(f, <span class="hljs-string">&quot;_&quot;</span>, p)
+        <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-number">10</span>:<span class="hljs-number">10</span>:<span class="hljs-number">80</span>
+        <span class="hljs-keyword">for</span> f <span class="hljs-keyword">in</span> [<span class="hljs-string">&quot;f1&quot;</span>, <span class="hljs-string">&quot;f2&quot;</span>, <span class="hljs-string">&quot;f3&quot;</span>]]
+])</code></pre>
 <p>Here we rename the columns in a succinct way, the structure is described in the data file. We broadcast an integer range from 1 to 30, which is the number of columns, with a list of 30 Symbols. The first two we specify manually, then there&#39;s <code>f0_steady</code>, <code>f1_steady</code>, etc. Finally, we need to make 24 column names which go like <code>f1_10</code>, <code>f2_10</code>, <code>f3_10</code>, <code>f1_20</code>, and so on. We can easily do this with a nested list comprehension, where we loop over the percentages in the outer loop, and over the formants in the inner loop.</p>
-<pre><code class="language-julia">transform&#40;:filename &#61;&gt;
-    ByRow&#40;f -&gt; &#40;
-        type &#61; f&#91;1&#93;,
-        number &#61; parse&#40;Int, f&#91;2:3&#93;&#41;,
-        vowel &#61; f&#91;4:5&#93;
-    &#41;&#41; &#61;&gt; AsTable&#41;</code></pre>
+<pre><code class="julia hljs">transform(:filename =&gt;
+    ByRow(f -&gt; (
+        type = f[<span class="hljs-number">1</span>],
+        number = parse(<span class="hljs-built_in">Int</span>, f[<span class="hljs-number">2</span>:<span class="hljs-number">3</span>]),
+        vowel = f[<span class="hljs-number">4</span>:<span class="hljs-number">5</span>]
+    )) =&gt; AsTable)</code></pre>
 <p>The data file specifies that some information is encoded in the filename. We extract this with a function that operates by row, and extracts the three components into fields of a named tuple. By passing <code>AsTable</code> as the sink, these named tuples are automatically expanded into correctly named columns.</p>
-<pre><code class="language-julia">transform&#40;:type &#61;&gt;
-    ByRow&#40;t -&gt; Dict&#40;
-        &#39;m&#39; &#61;&gt; &quot;man&quot;,
-        &#39;w&#39; &#61;&gt; &quot;woman&quot;,
-        &#39;b&#39; &#61;&gt; &quot;boy&quot;,
-        &#39;g&#39; &#61;&gt; &quot;girl&quot;&#41;&#91;t&#93;&#41; &#61;&gt; :type&#41;</code></pre>
+<pre><code class="julia hljs">transform(:type =&gt;
+    ByRow(t -&gt; <span class="hljs-built_in">Dict</span>(
+        <span class="hljs-string">&#x27;m&#x27;</span> =&gt; <span class="hljs-string">&quot;man&quot;</span>,
+        <span class="hljs-string">&#x27;w&#x27;</span> =&gt; <span class="hljs-string">&quot;woman&quot;</span>,
+        <span class="hljs-string">&#x27;b&#x27;</span> =&gt; <span class="hljs-string">&quot;boy&quot;</span>,
+        <span class="hljs-string">&#x27;g&#x27;</span> =&gt; <span class="hljs-string">&quot;girl&quot;</span>)[t]) =&gt; :type)</code></pre>
 <p>The type of speaker is currently encoded as a <code>Char</code>, but we can transform this column to a more readable form by looking up the long version of each character in a small dictionary.</p>
-<pre><code class="language-julia">select&#40;1:2, 31:33, 3:30&#41;</code></pre>
+<pre><code class="julia hljs">select(<span class="hljs-number">1</span>:<span class="hljs-number">2</span>, <span class="hljs-number">31</span>:<span class="hljs-number">33</span>, <span class="hljs-number">3</span>:<span class="hljs-number">30</span>)</code></pre>
 <p>Our three new columns have been appended at the end, but it would be nicer if the speaker descriptions were more at the front. So we just use a select statement, where the first two columns come first, then the last three, and then the rest.</p>
-<pre><code class="language-julia">CSV.write&#40;&quot;hillenbrand.csv&quot;, _&#41;</code></pre>
+<pre><code class="julia hljs">CSV.write(<span class="hljs-string">&quot;hillenbrand.csv&quot;</span>, _)</code></pre>
 <p>As the last step, we write out the cleaned table into a csv file, and we&#39;ve already reached the end of this short tutorial. This is what the end result looks like:</p>
-<pre><code class="language-julia">1668×33 DataFrame
+<pre><code class="julia hljs"><span class="hljs-number">1668</span>×<span class="hljs-number">33</span> DataFrame
   Row │ filename  duration_msec  type    number  vowel   f0_steady  f1_steady  f2_steady  f3_steady  f1_10  f2_10   f3_10    f1_20  f2_20   f3_20    f1_30  f2_3 ⋯
-      │ String    Int64          String  Int64   String  Int64      Int64      Int64?     Int64?     Int64  Int64?  Int64?   Int64  Int64?  Int64?   Int64  Int6 ⋯
+      │ <span class="hljs-built_in">String</span>    <span class="hljs-built_in">Int64</span>          <span class="hljs-built_in">String</span>  <span class="hljs-built_in">Int64</span>   <span class="hljs-built_in">String</span>  <span class="hljs-built_in">Int64</span>      <span class="hljs-built_in">Int64</span>      <span class="hljs-built_in">Int64</span>?     <span class="hljs-built_in">Int64</span>?     <span class="hljs-built_in">Int64</span>  <span class="hljs-built_in">Int64</span>?  <span class="hljs-built_in">Int64</span>?   <span class="hljs-built_in">Int64</span>  <span class="hljs-built_in">Int64</span>?  <span class="hljs-built_in">Int64</span>?   <span class="hljs-built_in">Int64</span>  Int6 ⋯
 ──────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    1 │ b01ae               257  boy          1  ae            238        630       2423       3166    625    2388     3174    651    2413     3115    675    24 ⋯
-    2 │ b02ae               359  boy          2  ae            286        829       2495       3218    802    2392     3625    778    2461     3424    793    24
-    3 │ b03ae               335  boy          3  ae            214        631       2801       3508    631    2801     3508    602    2760     3453    573    28
-    4 │ b04ae               398  boy          4  ae            239        712       2608       3247    729    2604     3239    712    2608     3247    695    25
-    5 │ b05ae               267  boy          5  ae            200        748       2589       3042    728    2601     3047    752    2562     3033    767    25 ⋯
-    6 │ b07ae               323  boy          7  ae            262        769       2203       3126    769    2203     3126    760    2169     3144    813    22
-    7 │ b08ae               316  boy          8  ae            216        870       2281       3077    765    2252     3214    820    2239     3181    864    23
-    8 │ b09ae               245  boy          9  ae            220        709       2565       3526    626    2545     3504    709    2565     3526    663    26
-    9 │ b10ae               396  boy         10  ae            205        634       2555       3121    635    2560     3230    642    2559     3126    633    25 ⋯
-   10 │ b11ae               298  boy         11  ae            209        630       2509       3112    630    2509     3112    627    2513     3098    616    25
-   11 │ b12ae               415  boy         12  ae            252        736       2505       3332    729    2544     3261    736    2504     3307    739    25
-   12 │ b13ae               281  boy         13  ae            216        634       2535       3260    634    2535     3260    630    2532     3248    623    25
-   13 │ b14ae               314  boy         14  ae            198        697       2418       3371    681    2444     3430    657    2471     3376    697    24 ⋯
-   14 │ b15ae               382  boy         15  ae            272        607       2620       3350    607    2620     3350    617    2599     3369    628    25
-   15 │ b16ae               367  boy         16  ae            187        753       2227       3064    788    2244     3150    750    2233     3042    749    22
-   16 │ b17ae               352  boy         17  ae            246        726       2231       2932    726    2231     2932    742    2246     2902    745    22
-   17 │ b18ae               307  boy         18  ae            249        741       2444       3043    735    2446     3008    746    2455     3021    748    24 ⋯
-   18 │ b19ae               312  boy         19  ae            209        674       2663       3243    684    2665     3268    693    2672     3256    733    26
-   19 │ b21ae               352  boy         21  ae            205        769       2234       2910    766    2245     2917    771    2215     2889    771    21
-   20 │ b22ae               256  boy         22  ae            229        678       2524       3418    687    2580     3288    678    2501     3424    677    25</code></pre>
+    <span class="hljs-number">1</span> │ b01ae               <span class="hljs-number">257</span>  boy          <span class="hljs-number">1</span>  ae            <span class="hljs-number">238</span>        <span class="hljs-number">630</span>       <span class="hljs-number">2423</span>       <span class="hljs-number">3166</span>    <span class="hljs-number">625</span>    <span class="hljs-number">2388</span>     <span class="hljs-number">3174</span>    <span class="hljs-number">651</span>    <span class="hljs-number">2413</span>     <span class="hljs-number">3115</span>    <span class="hljs-number">675</span>    <span class="hljs-number">24</span> ⋯
+    <span class="hljs-number">2</span> │ b02ae               <span class="hljs-number">359</span>  boy          <span class="hljs-number">2</span>  ae            <span class="hljs-number">286</span>        <span class="hljs-number">829</span>       <span class="hljs-number">2495</span>       <span class="hljs-number">3218</span>    <span class="hljs-number">802</span>    <span class="hljs-number">2392</span>     <span class="hljs-number">3625</span>    <span class="hljs-number">778</span>    <span class="hljs-number">2461</span>     <span class="hljs-number">3424</span>    <span class="hljs-number">793</span>    <span class="hljs-number">24</span>
+    <span class="hljs-number">3</span> │ b03ae               <span class="hljs-number">335</span>  boy          <span class="hljs-number">3</span>  ae            <span class="hljs-number">214</span>        <span class="hljs-number">631</span>       <span class="hljs-number">2801</span>       <span class="hljs-number">3508</span>    <span class="hljs-number">631</span>    <span class="hljs-number">2801</span>     <span class="hljs-number">3508</span>    <span class="hljs-number">602</span>    <span class="hljs-number">2760</span>     <span class="hljs-number">3453</span>    <span class="hljs-number">573</span>    <span class="hljs-number">28</span>
+    <span class="hljs-number">4</span> │ b04ae               <span class="hljs-number">398</span>  boy          <span class="hljs-number">4</span>  ae            <span class="hljs-number">239</span>        <span class="hljs-number">712</span>       <span class="hljs-number">2608</span>       <span class="hljs-number">3247</span>    <span class="hljs-number">729</span>    <span class="hljs-number">2604</span>     <span class="hljs-number">3239</span>    <span class="hljs-number">712</span>    <span class="hljs-number">2608</span>     <span class="hljs-number">3247</span>    <span class="hljs-number">695</span>    <span class="hljs-number">25</span>
+    <span class="hljs-number">5</span> │ b05ae               <span class="hljs-number">267</span>  boy          <span class="hljs-number">5</span>  ae            <span class="hljs-number">200</span>        <span class="hljs-number">748</span>       <span class="hljs-number">2589</span>       <span class="hljs-number">3042</span>    <span class="hljs-number">728</span>    <span class="hljs-number">2601</span>     <span class="hljs-number">3047</span>    <span class="hljs-number">752</span>    <span class="hljs-number">2562</span>     <span class="hljs-number">3033</span>    <span class="hljs-number">767</span>    <span class="hljs-number">25</span> ⋯
+    <span class="hljs-number">6</span> │ b07ae               <span class="hljs-number">323</span>  boy          <span class="hljs-number">7</span>  ae            <span class="hljs-number">262</span>        <span class="hljs-number">769</span>       <span class="hljs-number">2203</span>       <span class="hljs-number">3126</span>    <span class="hljs-number">769</span>    <span class="hljs-number">2203</span>     <span class="hljs-number">3126</span>    <span class="hljs-number">760</span>    <span class="hljs-number">2169</span>     <span class="hljs-number">3144</span>    <span class="hljs-number">813</span>    <span class="hljs-number">22</span>
+    <span class="hljs-number">7</span> │ b08ae               <span class="hljs-number">316</span>  boy          <span class="hljs-number">8</span>  ae            <span class="hljs-number">216</span>        <span class="hljs-number">870</span>       <span class="hljs-number">2281</span>       <span class="hljs-number">3077</span>    <span class="hljs-number">765</span>    <span class="hljs-number">2252</span>     <span class="hljs-number">3214</span>    <span class="hljs-number">820</span>    <span class="hljs-number">2239</span>     <span class="hljs-number">3181</span>    <span class="hljs-number">864</span>    <span class="hljs-number">23</span>
+    <span class="hljs-number">8</span> │ b09ae               <span class="hljs-number">245</span>  boy          <span class="hljs-number">9</span>  ae            <span class="hljs-number">220</span>        <span class="hljs-number">709</span>       <span class="hljs-number">2565</span>       <span class="hljs-number">3526</span>    <span class="hljs-number">626</span>    <span class="hljs-number">2545</span>     <span class="hljs-number">3504</span>    <span class="hljs-number">709</span>    <span class="hljs-number">2565</span>     <span class="hljs-number">3526</span>    <span class="hljs-number">663</span>    <span class="hljs-number">26</span>
+    <span class="hljs-number">9</span> │ b10ae               <span class="hljs-number">396</span>  boy         <span class="hljs-number">10</span>  ae            <span class="hljs-number">205</span>        <span class="hljs-number">634</span>       <span class="hljs-number">2555</span>       <span class="hljs-number">3121</span>    <span class="hljs-number">635</span>    <span class="hljs-number">2560</span>     <span class="hljs-number">3230</span>    <span class="hljs-number">642</span>    <span class="hljs-number">2559</span>     <span class="hljs-number">3126</span>    <span class="hljs-number">633</span>    <span class="hljs-number">25</span> ⋯
+   <span class="hljs-number">10</span> │ b11ae               <span class="hljs-number">298</span>  boy         <span class="hljs-number">11</span>  ae            <span class="hljs-number">209</span>        <span class="hljs-number">630</span>       <span class="hljs-number">2509</span>       <span class="hljs-number">3112</span>    <span class="hljs-number">630</span>    <span class="hljs-number">2509</span>     <span class="hljs-number">3112</span>    <span class="hljs-number">627</span>    <span class="hljs-number">2513</span>     <span class="hljs-number">3098</span>    <span class="hljs-number">616</span>    <span class="hljs-number">25</span>
+   <span class="hljs-number">11</span> │ b12ae               <span class="hljs-number">415</span>  boy         <span class="hljs-number">12</span>  ae            <span class="hljs-number">252</span>        <span class="hljs-number">736</span>       <span class="hljs-number">2505</span>       <span class="hljs-number">3332</span>    <span class="hljs-number">729</span>    <span class="hljs-number">2544</span>     <span class="hljs-number">3261</span>    <span class="hljs-number">736</span>    <span class="hljs-number">2504</span>     <span class="hljs-number">3307</span>    <span class="hljs-number">739</span>    <span class="hljs-number">25</span>
+   <span class="hljs-number">12</span> │ b13ae               <span class="hljs-number">281</span>  boy         <span class="hljs-number">13</span>  ae            <span class="hljs-number">216</span>        <span class="hljs-number">634</span>       <span class="hljs-number">2535</span>       <span class="hljs-number">3260</span>    <span class="hljs-number">634</span>    <span class="hljs-number">2535</span>     <span class="hljs-number">3260</span>    <span class="hljs-number">630</span>    <span class="hljs-number">2532</span>     <span class="hljs-number">3248</span>    <span class="hljs-number">623</span>    <span class="hljs-number">25</span>
+   <span class="hljs-number">13</span> │ b14ae               <span class="hljs-number">314</span>  boy         <span class="hljs-number">14</span>  ae            <span class="hljs-number">198</span>        <span class="hljs-number">697</span>       <span class="hljs-number">2418</span>       <span class="hljs-number">3371</span>    <span class="hljs-number">681</span>    <span class="hljs-number">2444</span>     <span class="hljs-number">3430</span>    <span class="hljs-number">657</span>    <span class="hljs-number">2471</span>     <span class="hljs-number">3376</span>    <span class="hljs-number">697</span>    <span class="hljs-number">24</span> ⋯
+   <span class="hljs-number">14</span> │ b15ae               <span class="hljs-number">382</span>  boy         <span class="hljs-number">15</span>  ae            <span class="hljs-number">272</span>        <span class="hljs-number">607</span>       <span class="hljs-number">2620</span>       <span class="hljs-number">3350</span>    <span class="hljs-number">607</span>    <span class="hljs-number">2620</span>     <span class="hljs-number">3350</span>    <span class="hljs-number">617</span>    <span class="hljs-number">2599</span>     <span class="hljs-number">3369</span>    <span class="hljs-number">628</span>    <span class="hljs-number">25</span>
+   <span class="hljs-number">15</span> │ b16ae               <span class="hljs-number">367</span>  boy         <span class="hljs-number">16</span>  ae            <span class="hljs-number">187</span>        <span class="hljs-number">753</span>       <span class="hljs-number">2227</span>       <span class="hljs-number">3064</span>    <span class="hljs-number">788</span>    <span class="hljs-number">2244</span>     <span class="hljs-number">3150</span>    <span class="hljs-number">750</span>    <span class="hljs-number">2233</span>     <span class="hljs-number">3042</span>    <span class="hljs-number">749</span>    <span class="hljs-number">22</span>
+   <span class="hljs-number">16</span> │ b17ae               <span class="hljs-number">352</span>  boy         <span class="hljs-number">17</span>  ae            <span class="hljs-number">246</span>        <span class="hljs-number">726</span>       <span class="hljs-number">2231</span>       <span class="hljs-number">2932</span>    <span class="hljs-number">726</span>    <span class="hljs-number">2231</span>     <span class="hljs-number">2932</span>    <span class="hljs-number">742</span>    <span class="hljs-number">2246</span>     <span class="hljs-number">2902</span>    <span class="hljs-number">745</span>    <span class="hljs-number">22</span>
+   <span class="hljs-number">17</span> │ b18ae               <span class="hljs-number">307</span>  boy         <span class="hljs-number">18</span>  ae            <span class="hljs-number">249</span>        <span class="hljs-number">741</span>       <span class="hljs-number">2444</span>       <span class="hljs-number">3043</span>    <span class="hljs-number">735</span>    <span class="hljs-number">2446</span>     <span class="hljs-number">3008</span>    <span class="hljs-number">746</span>    <span class="hljs-number">2455</span>     <span class="hljs-number">3021</span>    <span class="hljs-number">748</span>    <span class="hljs-number">24</span> ⋯
+   <span class="hljs-number">18</span> │ b19ae               <span class="hljs-number">312</span>  boy         <span class="hljs-number">19</span>  ae            <span class="hljs-number">209</span>        <span class="hljs-number">674</span>       <span class="hljs-number">2663</span>       <span class="hljs-number">3243</span>    <span class="hljs-number">684</span>    <span class="hljs-number">2665</span>     <span class="hljs-number">3268</span>    <span class="hljs-number">693</span>    <span class="hljs-number">2672</span>     <span class="hljs-number">3256</span>    <span class="hljs-number">733</span>    <span class="hljs-number">26</span>
+   <span class="hljs-number">19</span> │ b21ae               <span class="hljs-number">352</span>  boy         <span class="hljs-number">21</span>  ae            <span class="hljs-number">205</span>        <span class="hljs-number">769</span>       <span class="hljs-number">2234</span>       <span class="hljs-number">2910</span>    <span class="hljs-number">766</span>    <span class="hljs-number">2245</span>     <span class="hljs-number">2917</span>    <span class="hljs-number">771</span>    <span class="hljs-number">2215</span>     <span class="hljs-number">2889</span>    <span class="hljs-number">771</span>    <span class="hljs-number">21</span>
+   <span class="hljs-number">20</span> │ b22ae               <span class="hljs-number">256</span>  boy         <span class="hljs-number">22</span>  ae            <span class="hljs-number">229</span>        <span class="hljs-number">678</span>       <span class="hljs-number">2524</span>       <span class="hljs-number">3418</span>    <span class="hljs-number">687</span>    <span class="hljs-number">2580</span>     <span class="hljs-number">3288</span>    <span class="hljs-number">678</span>    <span class="hljs-number">2501</span>     <span class="hljs-number">3424</span>    <span class="hljs-number">677</span>    <span class="hljs-number">25</span></code></pre>
 <p>As always, there are lots of ways of achieving the same thing. This is just one version that I was satisfied with, and I hope you have learned one or two new techniques that can be useful to you in the future.</p>
 <div class="page-foot">
   <div class="copyright">
@@ -149,7 +149,7 @@ replace&#40;r&quot;\s&#43;&#36;&quot;m &#61;&gt; &quot;\n&quot;&#41;</code></pre
     
     
         <script src="/libs/highlight/julia.highlight.js"></script>
-<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
+
 
     
   </body>
