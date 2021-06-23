@@ -40,163 +40,163 @@
 <div class="franklin-content"><h1 id="analyzing_international_football_results_with_julia"><a href="#analyzing_international_football_results_with_julia" class="header-anchor">Analyzing international football results with Julia</a></h1>
 <p>As the UEFA Euro 202&#40;0/1&#41; is going on, I was inspired to check out a dataset of all international men&#39;s football matches since the dawn of time. This post goes over some questions I had for the dataset, and how I approached the analysis with my recent macro package DataFrameMacros.jl. Plotting is done with AlgebraOfGraphics.jl, which is a super useful grammar-of-graphics style package building on Makie.jl, which I&#39;m a co-author of and which is therefore my preferred plotting package.</p>
 <p>Let&#39;s set up some basics and import the necessary packages:</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">using</span> CairoMakie
-<span class="hljs-keyword">using</span> AlgebraOfGraphics
-<span class="hljs-keyword">using</span> Chain
-<span class="hljs-keyword">using</span> CSV
-<span class="hljs-keyword">using</span> Downloads
-<span class="hljs-keyword">using</span> DataFrames
-<span class="hljs-keyword">using</span> DataFrameMacros
-<span class="hljs-keyword">using</span> StatsBase
-<span class="hljs-keyword">using</span> Dates
+<pre><code class="language-julia">using CairoMakie
+using AlgebraOfGraphics
+using Chain
+using CSV
+using Downloads
+using DataFrames
+using DataFrameMacros
+using StatsBase
+using Dates
 
-CairoMakie.activate!(type = <span class="hljs-string">&quot;svg&quot;</span>)
-set_theme!(theme_minimal(), font = <span class="hljs-string">&quot;Avenir Light&quot;</span>)</code></pre>
+CairoMakie.activate&#33;&#40;type &#61; &quot;svg&quot;&#41;
+set_theme&#33;&#40;theme_minimal&#40;&#41;, font &#61; &quot;Avenir Light&quot;&#41;</code></pre>
 <p>First, we need to download the dataset, which is available on <a href="https://raw.githubusercontent.com/martj42/international_results/master/results.csv">github</a>.</p>
-<pre><code class="julia hljs">url = <span class="hljs-string">&quot;https://raw.githubusercontent.com/martj42/international_results/master/results.csv&quot;</span>
+<pre><code class="language-julia">url &#61; &quot;https://raw.githubusercontent.com/martj42/international_results/master/results.csv&quot;
 
-df = <span class="hljs-meta">@chain</span> url <span class="hljs-keyword">begin</span>
+df &#61; @chain url begin
     Downloads.download
-    CSV.File(missingstring = <span class="hljs-string">&quot;NA&quot;</span>)
+    CSV.File&#40;missingstring &#61; &quot;NA&quot;&#41;
     DataFrame
-<span class="hljs-keyword">end</span>
+end
 
-first(df, <span class="hljs-number">10</span>)</code></pre>
+first&#40;df, 10&#41;</code></pre>
 
 <table class="data-frame"><thead><tr><th></th><th>date</th><th>home_team</th><th>away_team</th><th>home_score</th><th>away_score</th><th>tournament</th><th>city</th><th>country</th><th>neutral</th></tr><tr><th></th><th>Date</th><th>String</th><th>String</th><th>Int64?</th><th>Int64?</th><th>String</th><th>String?</th><th>String?</th><th>Bool?</th></tr></thead><tbody><p>10 rows × 9 columns</p><tr><th>1</th><td>1872-11-30</td><td>Scotland</td><td>England</td><td>0</td><td>0</td><td>Friendly</td><td>Glasgow</td><td>Scotland</td><td>0</td></tr><tr><th>2</th><td>1873-03-08</td><td>England</td><td>Scotland</td><td>4</td><td>2</td><td>Friendly</td><td>London</td><td>England</td><td>0</td></tr><tr><th>3</th><td>1874-03-07</td><td>Scotland</td><td>England</td><td>2</td><td>1</td><td>Friendly</td><td>Glasgow</td><td>Scotland</td><td>0</td></tr><tr><th>4</th><td>1875-03-06</td><td>England</td><td>Scotland</td><td>2</td><td>2</td><td>Friendly</td><td>London</td><td>England</td><td>0</td></tr><tr><th>5</th><td>1876-03-04</td><td>Scotland</td><td>England</td><td>3</td><td>0</td><td>Friendly</td><td>Glasgow</td><td>Scotland</td><td>0</td></tr><tr><th>6</th><td>1876-03-25</td><td>Scotland</td><td>Wales</td><td>4</td><td>0</td><td>Friendly</td><td>Glasgow</td><td>Scotland</td><td>0</td></tr><tr><th>7</th><td>1877-03-03</td><td>England</td><td>Scotland</td><td>1</td><td>3</td><td>Friendly</td><td>London</td><td>England</td><td>0</td></tr><tr><th>8</th><td>1877-03-05</td><td>Wales</td><td>Scotland</td><td>0</td><td>2</td><td>Friendly</td><td>Wrexham</td><td>Wales</td><td>0</td></tr><tr><th>9</th><td>1878-03-02</td><td>Scotland</td><td>England</td><td>7</td><td>2</td><td>Friendly</td><td>Glasgow</td><td>Scotland</td><td>0</td></tr><tr><th>10</th><td>1878-03-23</td><td>Scotland</td><td>Wales</td><td>9</td><td>0</td><td>Friendly</td><td>Glasgow</td><td>Scotland</td><td>0</td></tr></tbody></table>
 
 <p>Let&#39;s start with a simple question: How did the number of games played per year develop over time? In DataFrameMacros.jl, you can group by columns that you create directly in the groupby call.</p>
 <p>We can directly visualize the result by chaining the analysis into AlgebraOfGraphics.</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@groupby</span>(:year = year(:date))
-    combine(nrow =&gt; :n_games)
-    data(_) *
-        mapping(:year =&gt; <span class="hljs-string">&quot;Year&quot;</span>, :n_games =&gt; <span class="hljs-string">&quot;Number of games&quot;</span>) *
-        visual(Scatter)
+<pre><code class="language-julia">@chain df begin
+    @groupby&#40;:year &#61; year&#40;:date&#41;&#41;
+    combine&#40;nrow &#61;&gt; :n_games&#41;
+    data&#40;_&#41; *
+        mapping&#40;:year &#61;&gt; &quot;Year&quot;, :n_games &#61;&gt; &quot;Number of games&quot;&#41; *
+        visual&#40;Scatter&#41;
     draw
-<span class="hljs-keyword">end</span></code></pre>
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/208765501.svg" alt="" /></p>
 <p>There has been a huge growth in the number of games per year. What could have been the driving factors there? We could look at the development of friendly vs. non-friendly games.</p>
 <p>As soon as there are some groups to plot separately, I like using AlgebraOfGraphics.jl, which does all the work of grouping and legend building for me. I can build one long chain that culminates in a plot, so I don&#39;t have to come up with names for intermediary steps.</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@groupby</span>(:year = year(:date), :friendly = :tournament == <span class="hljs-string">&quot;Friendly&quot;</span>)
-    combine(nrow =&gt; :n_games)
-    data(_) *
-        mapping(:year =&gt; <span class="hljs-string">&quot;Year&quot;</span>, :n_games =&gt; <span class="hljs-string">&quot;Number of games&quot;</span>,
-            color = :friendly =&gt; nonnumeric) *
-        visual(Scatter)
+<pre><code class="language-julia">@chain df begin
+    @groupby&#40;:year &#61; year&#40;:date&#41;, :friendly &#61; :tournament &#61;&#61; &quot;Friendly&quot;&#41;
+    combine&#40;nrow &#61;&gt; :n_games&#41;
+    data&#40;_&#41; *
+        mapping&#40;:year &#61;&gt; &quot;Year&quot;, :n_games &#61;&gt; &quot;Number of games&quot;,
+            color &#61; :friendly &#61;&gt; nonnumeric&#41; *
+        visual&#40;Scatter&#41;
     draw
-<span class="hljs-keyword">end</span></code></pre>
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/1108091503.svg" alt="" /></p>
 <p>So we can see that both friendlies and competitions have become much more numerous, although the competitions are responsible for the larger share.</p>
 <p>Another way we could look at this information is to count the number of different competitions per year:</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@subset</span>(:tournament != <span class="hljs-string">&quot;Friendly&quot;</span>)
-    <span class="hljs-meta">@groupby</span>(:year = year(:date))
-    <span class="hljs-meta">@combine</span>(:n_competitions = length(unique(:tournament)))
-    data(_) *
-        mapping(:year =&gt; <span class="hljs-string">&quot;Year&quot;</span>, :n_competitions =&gt; <span class="hljs-string">&quot;Number of competitions&quot;</span>) *
-        (visual(Scatter, markersize = <span class="hljs-number">5</span>) + smooth())
+<pre><code class="language-julia">@chain df begin
+    @subset&#40;:tournament &#33;&#61; &quot;Friendly&quot;&#41;
+    @groupby&#40;:year &#61; year&#40;:date&#41;&#41;
+    @combine&#40;:n_competitions &#61; length&#40;unique&#40;:tournament&#41;&#41;&#41;
+    data&#40;_&#41; *
+        mapping&#40;:year &#61;&gt; &quot;Year&quot;, :n_competitions &#61;&gt; &quot;Number of competitions&quot;&#41; *
+        &#40;visual&#40;Scatter, markersize &#61; 5&#41; &#43; smooth&#40;&#41;&#41;
     draw
-<span class="hljs-keyword">end</span></code></pre>
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/1871856845.svg" alt="" /></p>
 <p>And of course the average number of teams per competition:</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@subset</span>(:tournament != <span class="hljs-string">&quot;Friendly&quot;</span>)
-    <span class="hljs-meta">@groupby</span>(:year = year(:date), :tournament)
-    <span class="hljs-meta">@combine</span>(:n_teams = <span class="hljs-meta">@c</span> length(unique(vcat(:home_team, :away_team))))
-    data(_) *
-        mapping(:year =&gt; <span class="hljs-string">&quot;Year&quot;</span>, :n_teams =&gt; <span class="hljs-string">&quot;Number of teams per competition&quot;</span>) *
-        (visual(Scatter, markersize = <span class="hljs-number">4</span>, color = (:black, <span class="hljs-number">0.3</span>)) + smooth() * visual(linewidth = <span class="hljs-number">3</span>))
+<pre><code class="language-julia">@chain df begin
+    @subset&#40;:tournament &#33;&#61; &quot;Friendly&quot;&#41;
+    @groupby&#40;:year &#61; year&#40;:date&#41;, :tournament&#41;
+    @combine&#40;:n_teams &#61; @c length&#40;unique&#40;vcat&#40;:home_team, :away_team&#41;&#41;&#41;&#41;
+    data&#40;_&#41; *
+        mapping&#40;:year &#61;&gt; &quot;Year&quot;, :n_teams &#61;&gt; &quot;Number of teams per competition&quot;&#41; *
+        &#40;visual&#40;Scatter, markersize &#61; 4, color &#61; &#40;:black, 0.3&#41;&#41; &#43; smooth&#40;&#41; * visual&#40;linewidth &#61; 3&#41;&#41;
     draw
-<span class="hljs-keyword">end</span></code></pre>
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/4035587173.svg" alt="" /></p>
 <p>So both the number of competitions, as well as the number of teams taking part in each competition has increased over the years.</p>
 <p>Let&#39;s check out how the number of goals per game during world cups has developed over time. As football has become more and more professionalized, do the highly trained players of today score more or fewer goals? &#40;The defense is also better trained, of course.&#41;</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@subset</span>(:tournament == <span class="hljs-string">&quot;FIFA World Cup&quot;</span>)
-    <span class="hljs-meta">@transform</span>(:year = year(:date))
-    <span class="hljs-meta">@transform</span>(:n_goals = :home_score + :away_score)
-    <span class="hljs-meta">@groupby</span>(:year)
-    <span class="hljs-meta">@combine</span>(:average_goals = mean(:n_goals))
-    data(_) *
-        mapping(:year =&gt; <span class="hljs-string">&quot;Year&quot;</span>, :average_goals =&gt; <span class="hljs-string">&quot;Average goals per game&quot;</span>) *
-        (visual(Scatter) + smooth())
-    draw(axis = (limits = (<span class="hljs-literal">nothing</span>, (<span class="hljs-number">0</span>, <span class="hljs-literal">nothing</span>)),))
-<span class="hljs-keyword">end</span></code></pre>
+<pre><code class="language-julia">@chain df begin
+    @subset&#40;:tournament &#61;&#61; &quot;FIFA World Cup&quot;&#41;
+    @transform&#40;:year &#61; year&#40;:date&#41;&#41;
+    @transform&#40;:n_goals &#61; :home_score &#43; :away_score&#41;
+    @groupby&#40;:year&#41;
+    @combine&#40;:average_goals &#61; mean&#40;:n_goals&#41;&#41;
+    data&#40;_&#41; *
+        mapping&#40;:year &#61;&gt; &quot;Year&quot;, :average_goals &#61;&gt; &quot;Average goals per game&quot;&#41; *
+        &#40;visual&#40;Scatter&#41; &#43; smooth&#40;&#41;&#41;
+    draw&#40;axis &#61; &#40;limits &#61; &#40;nothing, &#40;0, nothing&#41;&#41;,&#41;&#41;
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/1055163020.svg" alt="" /></p>
 <p>It seems the number of goals has gone down over time, from around 4 to 2.5 or so, where it has plateaued. This dataset can give no indication, though, what the reasons for this development might be.</p>
 <p>One thing we can look at, though, is the distribution of goal differences over time. Maybe the teams were just much more different in ability before?</p>
 <p>We could make histograms for 1954 and 1990, which had high and low averages, respectively.</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@transform</span>(:year = year(:date))
-    <span class="hljs-meta">@subset</span>(:tournament == <span class="hljs-string">&quot;FIFA World Cup&quot;</span>, :year <span class="hljs-keyword">in</span> (<span class="hljs-number">1954</span>, <span class="hljs-number">1990</span>))
-    <span class="hljs-meta">@transform</span>(:goal_difference = abs(:home_score - :away_score))
-    data(_) *
-        mapping(:goal_difference  =&gt; <span class="hljs-string">&quot;Goal difference&quot;</span>,
-            col = :year =&gt; nonnumeric) *
-        frequency()
+<pre><code class="language-julia">@chain df begin
+    @transform&#40;:year &#61; year&#40;:date&#41;&#41;
+    @subset&#40;:tournament &#61;&#61; &quot;FIFA World Cup&quot;, :year in &#40;1954, 1990&#41;&#41;
+    @transform&#40;:goal_difference &#61; abs&#40;:home_score - :away_score&#41;&#41;
+    data&#40;_&#41; *
+        mapping&#40;:goal_difference  &#61;&gt; &quot;Goal difference&quot;,
+            col &#61; :year &#61;&gt; nonnumeric&#41; *
+        frequency&#40;&#41;
     draw
-<span class="hljs-keyword">end</span></code></pre>
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/2119573821.svg" alt="" /></p>
 <p>So there were even games with 7 or 9 goals difference in 1954, suggesting that at least some of the matches might have been quite unbalanced at the time, driving a higher goal average.</p>
 <p>In 1990, most games were decided by one goal difference, in comparison.</p>
 <p>Let&#39;s turn to another question, that of the home team advantage. For a quick glance, we can compute the probability of winning as the home team.</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@subset</span>(_, !:neutral; skipmissing = <span class="hljs-literal">true</span>)
-    <span class="hljs-meta">@transform</span>(:home_result = <span class="hljs-meta">@m</span> :home_score &gt; :away_score ?
-        <span class="hljs-string">&quot;win&quot;</span> : :away_score &gt; :home_score ? <span class="hljs-string">&quot;lose&quot;</span> : <span class="hljs-string">&quot;tie&quot;</span>)
-    dropmissing(:home_result)
-    <span class="hljs-meta">@aside</span> n = nrow(_)
-    <span class="hljs-meta">@groupby</span>(:home_result)
-    <span class="hljs-meta">@combine</span>(:p = length(:home_result) / n)
-<span class="hljs-keyword">end</span></code></pre>
+<pre><code class="language-julia">@chain df begin
+    @subset&#40;_, &#33;:neutral; skipmissing &#61; true&#41;
+    @transform&#40;:home_result &#61; @m :home_score &gt; :away_score ?
+        &quot;win&quot; : :away_score &gt; :home_score ? &quot;lose&quot; : &quot;tie&quot;&#41;
+    dropmissing&#40;:home_result&#41;
+    @aside n &#61; nrow&#40;_&#41;
+    @groupby&#40;:home_result&#41;
+    @combine&#40;:p &#61; length&#40;:home_result&#41; / n&#41;
+end</code></pre>
 
 <table class="data-frame"><thead><tr><th></th><th>home_result</th><th>p</th></tr><tr><th></th><th>String</th><th>Float64</th></tr></thead><tbody><p>3 rows × 2 columns</p><tr><th>1</th><td>tie</td><td>0.231298</td></tr><tr><th>2</th><td>win</td><td>0.504721</td></tr><tr><th>3</th><td>lose</td><td>0.263982</td></tr></tbody></table>
 
 <p>It looks like the probability to win as the home team is about 50&#37;, so twice as likely as losing. This could be a bit misleading, potentially, if the better teams are also somehow the teams that host more games.</p>
 <p>So we could check how it looks if we compute the win lose ratio for each team separately. One problem is that each &quot;team&quot; &#40;country&#41; changes all the time, and Germany from 1950 has nothing in common with Germany from 2020. As an approximation, we can split the timeline into 5 year bins, and calculate the ratio within those.</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@chain</span> df <span class="hljs-keyword">begin</span>
-    <span class="hljs-meta">@subset</span>(_, !:neutral; skipmissing = <span class="hljs-literal">true</span>)
-    <span class="hljs-meta">@transform</span>(:home_result = <span class="hljs-meta">@m</span> :home_score &gt; :away_score ?
-        <span class="hljs-string">&quot;win&quot;</span> : :away_score &gt; :home_score ? <span class="hljs-string">&quot;lose&quot;</span> : <span class="hljs-string">&quot;tie&quot;</span>)
-    dropmissing(:home_result)
-    <span class="hljs-meta">@transform</span>(:fiveyears = year(:date) - year(:date) % <span class="hljs-number">5</span>)
-    stack([:home_team, :away_team], variable_name = :type,
-        value_name = :team)
-    <span class="hljs-meta">@transform</span>(:result = <span class="hljs-keyword">if</span> :type == <span class="hljs-string">&quot;home_team&quot;</span>
+<pre><code class="language-julia">@chain df begin
+    @subset&#40;_, &#33;:neutral; skipmissing &#61; true&#41;
+    @transform&#40;:home_result &#61; @m :home_score &gt; :away_score ?
+        &quot;win&quot; : :away_score &gt; :home_score ? &quot;lose&quot; : &quot;tie&quot;&#41;
+    dropmissing&#40;:home_result&#41;
+    @transform&#40;:fiveyears &#61; year&#40;:date&#41; - year&#40;:date&#41; &#37; 5&#41;
+    stack&#40;&#91;:home_team, :away_team&#93;, variable_name &#61; :type,
+        value_name &#61; :team&#41;
+    @transform&#40;:result &#61; if :type &#61;&#61; &quot;home_team&quot;
         :home_result
-    <span class="hljs-keyword">else</span>
-        :home_result == <span class="hljs-string">&quot;win&quot;</span> ? <span class="hljs-string">&quot;lose&quot;</span> :
-            :home_result == <span class="hljs-string">&quot;lose&quot;</span> ? <span class="hljs-string">&quot;win&quot;</span> : <span class="hljs-string">&quot;tie&quot;</span>
-    <span class="hljs-keyword">end</span>)
-    <span class="hljs-meta">@subset</span>(:result != <span class="hljs-string">&quot;tie&quot;</span>)
-    <span class="hljs-meta">@groupby</span>(:fiveyears, :team, :type, :result)
-    combine(nrow  =&gt; :count)
-    unstack(:result, :count)
-    <span class="hljs-meta">@transform</span>(:win = coalesce(:win, <span class="hljs-number">0</span>), :lose = coalesce(:lose, <span class="hljs-number">0</span>))
-    <span class="hljs-meta">@transform</span>(:p_win = :win / (:win + :lose))
-    unstack([:fiveyears, :team], :type, :p_win)
-    <span class="hljs-meta">@transform</span>(:home_p_win_delta = :home_team - :away_team)
-    dropmissing(:home_p_win_delta)
-    data(_) *
-        mapping(:fiveyears =&gt; <span class="hljs-string">&quot;Five year period&quot;</span>, :home_p_win_delta =&gt; <span class="hljs-string">&quot;p(win) - p(lose)&quot;</span>) *
-        (visual(Scatter, markersize = <span class="hljs-number">5</span>, color = (:black, <span class="hljs-number">0.2</span>)) + smooth())
+    else
+        :home_result &#61;&#61; &quot;win&quot; ? &quot;lose&quot; :
+            :home_result &#61;&#61; &quot;lose&quot; ? &quot;win&quot; : &quot;tie&quot;
+    end&#41;
+    @subset&#40;:result &#33;&#61; &quot;tie&quot;&#41;
+    @groupby&#40;:fiveyears, :team, :type, :result&#41;
+    combine&#40;nrow  &#61;&gt; :count&#41;
+    unstack&#40;:result, :count&#41;
+    @transform&#40;:win &#61; coalesce&#40;:win, 0&#41;, :lose &#61; coalesce&#40;:lose, 0&#41;&#41;
+    @transform&#40;:p_win &#61; :win / &#40;:win &#43; :lose&#41;&#41;
+    unstack&#40;&#91;:fiveyears, :team&#93;, :type, :p_win&#41;
+    @transform&#40;:home_p_win_delta &#61; :home_team - :away_team&#41;
+    dropmissing&#40;:home_p_win_delta&#41;
+    data&#40;_&#41; *
+        mapping&#40;:fiveyears &#61;&gt; &quot;Five year period&quot;, :home_p_win_delta &#61;&gt; &quot;p&#40;win&#41; - p&#40;lose&#41;&quot;&#41; *
+        &#40;visual&#40;Scatter, markersize &#61; 5, color &#61; &#40;:black, 0.2&#41;&#41; &#43; smooth&#40;&#41;&#41;
     draw
-<span class="hljs-keyword">end</span></code></pre>
+end</code></pre>
 <p><img src="/assets/2021-06-20-football-data-analysis/3383854506.svg" alt="" /></p>
 <p>Even though this is only a pretty rough analysis, the home advantage appears to hold up when looking at it within each team, separately over time.</p>
 <p>This was an example of data analysis and plotting with DataFrameMacros.jl and AlgebraOfGraphics.jl. I hope you learned something new, either about Julia, or about international football.</p>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Julius Krumbiegel. Last modified: June 22, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Julius Krumbiegel. Last modified: June 23, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->
     
     
         <script src="/libs/highlight/julia.highlight.js"></script>
-
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
 
     
   </body>

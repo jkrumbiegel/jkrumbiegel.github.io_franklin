@@ -41,30 +41,30 @@
 <p>If you&#39;re new to Julia, here is a scenario that might have tripped you up already:</p>
 <p>Let&#39;s define two points. Both are just a collection of two floating point numbers. But one is a <code>Vector</code>, written with the <code>&#91;&#93;</code> syntax,  and one a <code>Tuple</code>, written with the <code>&#40;&#41;</code> syntax.</p>
 <p>Then we make vectors of both types of points and run a short computation. Let&#39;s see what the performance difference looks like.</p>
-<pre><code class="julia hljs">rand_vector_point() = [rand(), rand()] <span class="hljs-comment"># note the []</span>
-rand_tuple_point()  = (rand(), rand()) <span class="hljs-comment"># note the ()</span>
+<pre><code class="language-julia">rand_vector_point&#40;&#41; &#61; &#91;rand&#40;&#41;, rand&#40;&#41;&#93; # note the &#91;&#93;
+rand_tuple_point&#40;&#41;  &#61; &#40;rand&#40;&#41;, rand&#40;&#41;&#41; # note the &#40;&#41;
 
-<span class="hljs-comment"># create vectors of 500 random points each</span>
-vector_points = [rand_vector_point() <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">500</span>]
-tuple_points  = [rand_tuple_point()  <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">500</span>]
+# create vectors of 500 random points each
+vector_points &#61; &#91;rand_vector_point&#40;&#41; for _ in 1:500&#93;
+tuple_points  &#61; &#91;rand_tuple_point&#40;&#41;  for _ in 1:500&#93;
 
-<span class="hljs-comment"># define a simple function calculating pairwise differences</span>
-<span class="hljs-keyword">function</span> difference_matrix(points)
-    [p1 .- p2 <span class="hljs-keyword">for</span> p1 <span class="hljs-keyword">in</span> points, p2 <span class="hljs-keyword">in</span> points]
-<span class="hljs-keyword">end</span>
+# define a simple function calculating pairwise differences
+function difference_matrix&#40;points&#41;
+    &#91;p1 .- p2 for p1 in points, p2 in points&#93;
+end
 
-<span class="hljs-comment"># run each version once, just to get compilation out of the way</span>
-difference_matrix(vector_points)
-difference_matrix(tuple_points)
+# run each version once, just to get compilation out of the way
+difference_matrix&#40;vector_points&#41;
+difference_matrix&#40;tuple_points&#41;
 
-println(<span class="hljs-string">&quot;Vector version:&quot;</span>)
-<span class="hljs-meta">@time</span> difference_matrix(vector_points)
-println(<span class="hljs-string">&quot;Tuple version:&quot;</span>)
-<span class="hljs-meta">@time</span> difference_matrix(tuple_points)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-built_in">Vector</span> version:
-  <span class="hljs-number">0.017412</span> seconds (<span class="hljs-number">250.00</span> k allocations: <span class="hljs-number">24.796</span> MiB)
-<span class="hljs-built_in">Tuple</span> version:
-  <span class="hljs-number">0.002698</span> seconds (<span class="hljs-number">2</span> allocations: <span class="hljs-number">3.815</span> MiB)</code></pre>
+println&#40;&quot;Vector version:&quot;&#41;
+@time difference_matrix&#40;vector_points&#41;
+println&#40;&quot;Tuple version:&quot;&#41;
+@time difference_matrix&#40;tuple_points&#41;</code></pre>
+<pre><code class="language-julia">Vector version:
+  0.017412 seconds &#40;250.00 k allocations: 24.796 MiB&#41;
+Tuple version:
+  0.002698 seconds &#40;2 allocations: 3.815 MiB&#41;</code></pre>
 <p>The Vector version is much slower than the Tuple version. But why? Are Vectors bad and Tuples good?</p>
 <p>In the following post I&#39;ll try to explain in simple terms why we see such a big difference and how you can use your new knowledge to write better code in Julia.</p>
 <h2 id="allocations"><a href="#allocations" class="header-anchor">Allocations</a></h2>
@@ -88,16 +88,16 @@ println(<span class="hljs-string">&quot;Tuple version:&quot;</span>)
 <h2 id="mutable_and_immutable_objects"><a href="#mutable_and_immutable_objects" class="header-anchor">Mutable And Immutable Objects</a></h2>
 <p>At first glance, the two descriptions of a point <code>&#91;rand&#40;&#41;, rand&#40;&#41;&#93;</code> and <code>&#40;rand&#40;&#41;, rand&#40;&#41;&#41;</code> might look really similar, and obviously we could run the same function with both versions. The difference is that the <code>Vector</code> created with <code>&#91;&#93;</code> is mutable, and the <code>Tuple</code> created with <code>&#40;&#41;</code> is immutable.</p>
 <p>For example this works:</p>
-<pre><code class="julia hljs">vector_point = [<span class="hljs-number">1.0</span>, <span class="hljs-number">2.0</span>]
-push!(vector_point, <span class="hljs-number">3.0</span>)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">3</span>-element <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Float64</span>,<span class="hljs-number">1</span>}:
- <span class="hljs-number">1.0</span>
- <span class="hljs-number">2.0</span>
- <span class="hljs-number">3.0</span></code></pre>
+<pre><code class="language-julia">vector_point &#61; &#91;1.0, 2.0&#93;
+push&#33;&#40;vector_point, 3.0&#41;</code></pre>
+<pre><code class="language-julia">3-element Array&#123;Float64,1&#125;:
+ 1.0
+ 2.0
+ 3.0</code></pre>
 <p>And this doesn&#39;t:</p>
-<pre><code class="julia hljs">tuple_point = (<span class="hljs-number">1.0</span>, <span class="hljs-number">2.0</span>)
-push!(tuple_point, <span class="hljs-number">3.0</span>)</code></pre>
-<pre><code class="julia hljs">ERROR: <span class="hljs-built_in">MethodError</span>: no method matching push!(::<span class="hljs-built_in">Tuple</span>{<span class="hljs-built_in">Float64</span>,<span class="hljs-built_in">Float64</span>}, ::<span class="hljs-built_in">Float64</span>)</code></pre>
+<pre><code class="language-julia">tuple_point &#61; &#40;1.0, 2.0&#41;
+push&#33;&#40;tuple_point, 3.0&#41;</code></pre>
+<pre><code class="language-julia">ERROR: MethodError: no method matching push&#33;&#40;::Tuple&#123;Float64,Float64&#125;, ::Float64&#41;</code></pre>
 <p>Another important difference is the exact type of each object. The vector point is of type <code>Array&#123;Float64,1&#125;</code>, or a one-dimensional array of <code>Float64</code>s. The tuple point is of type <code>Tuple&#123;Float64,Float64&#125;</code>, or a tuple of exactly two <code>Float64</code>s.</p>
 <p>Notice the difference? The tuple type guarantees that there are always exactly two elements in our point. The <code>Array&#123;Float64,1&#125;</code> makes no such guarantee.</p>
 <p>In Julia, a generic function has a method compiled for each combination of specific types of input arguments that we give it. So the method of <code>difference_matrix&#40;points&#41;</code> where <code>points</code> is a Vector of points of type <code>Array&#123;Float64,1&#125;</code> doesn&#39;t know how many elements such points have, or how much memory will be needed for the resulting points, or even the matrix storing these points. That all has to be determined dynamically. Dynamic is slow&#33;</p>
@@ -106,24 +106,24 @@ push!(tuple_point, <span class="hljs-number">3.0</span>)</code></pre>
 <p>Notice that the matrix of tuples itself is not stored on the stack, but is stored in contiguous fashion on the heap. As long as we only need one allocation for that big piece of memory, that cost disappears compared to the computations we do with that memory. The 250,000 allocations in the vector case come from each individual <code>Vector</code> that results from the subtraction of two existing <code>Vectors</code>. For the matrix that stores the addresses of those individual vectors we again need only one allocation, because the memory addresses of mutable objects are themselves immutable objects of fixed size...</p>
 <h2 id="its_not_just_tuples"><a href="#its_not_just_tuples" class="header-anchor">It&#39;s Not Just Tuples</a></h2>
 <p>The mechanism explained above is not specific to tuples. It works with basically every immutable data structure that has a fixed size in memory given its type. For example, we could define a point as an immutable struct containing exactly two <code>Float64</code>s and would enjoy similar benefits:</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">struct</span> Point
-    x::<span class="hljs-built_in">Float64</span>
-    y::<span class="hljs-built_in">Float64</span>
-<span class="hljs-keyword">end</span></code></pre>
+<pre><code class="language-julia">struct Point
+    x::Float64
+    y::Float64
+end</code></pre>
 <p>Actually, such a point would have the exact same memory footprint as a <code>Tuple&#123;Float64,Float64&#125;</code> and the compiler might even treat them exactly the same on a machine code level.</p>
 <p>The important thing is that the type of our point gives the compiler complete information about the size in memory. Often, the compiler depends on knowing the exact type of objects that are stored in a collection. And it&#39;s not immediately better just because that type is a <code>Tuple</code>.</p>
 <p>For example, you can store points of type <code>Tuple&#123;Float64, Float64&#125;</code> in a vector with parametric type <code>Tuple&#123;Any,Any&#125;</code>. This basically hides the true identity of our points from the compiler and results in abysmal performance:</p>
-<pre><code class="julia hljs">anytuple_points  = <span class="hljs-built_in">Tuple</span>{<span class="hljs-built_in">Any</span>,<span class="hljs-built_in">Any</span>}[rand_tuple_point()  <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">500</span>]
+<pre><code class="language-julia">anytuple_points  &#61; Tuple&#123;Any,Any&#125;&#91;rand_tuple_point&#40;&#41;  for _ in 1:500&#93;
 
-println(<span class="hljs-string">&quot;We have hidden our points in an <span class="hljs-subst">$(typeof(anytuple_points)</span>)&quot;</span>)
+println&#40;&quot;We have hidden our points in an &#36;&#40;typeof&#40;anytuple_points&#41;&#41;&quot;&#41;
 
-difference_matrix(anytuple_points)
+difference_matrix&#40;anytuple_points&#41;
 
-println(<span class="hljs-string">&quot;AnyTuple version:&quot;</span>)
-<span class="hljs-meta">@time</span> difference_matrix(anytuple_points)</code></pre>
-<pre><code class="julia hljs">We have hidden our points <span class="hljs-keyword">in</span> an <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Tuple</span>{<span class="hljs-built_in">Any</span>,<span class="hljs-built_in">Any</span>},<span class="hljs-number">1</span>}
+println&#40;&quot;AnyTuple version:&quot;&#41;
+@time difference_matrix&#40;anytuple_points&#41;</code></pre>
+<pre><code class="language-julia">We have hidden our points in an Array&#123;Tuple&#123;Any,Any&#125;,1&#125;
 AnyTuple version:
-  <span class="hljs-number">0.109928</span> seconds (<span class="hljs-number">1.75</span> M allocations: <span class="hljs-number">68.680</span> MiB, <span class="hljs-number">8.43</span>% gc time)</code></pre>
+  0.109928 seconds &#40;1.75 M allocations: 68.680 MiB, 8.43&#37; gc time&#41;</code></pre>
 <p>The instructions the compiler created for <code>Tuple&#123;Any,Any&#125;</code> points are much more bloated, because who knows what those tuples contain? Could it be <code>Float64</code>s by chance? The issue above actually leads to a very important concept in Julia called <em>type stability</em> which is another huge factor influencing performance, but is too much for this post.</p>
 <h2 id="stack_those_immutables"><a href="#stack_those_immutables" class="header-anchor">Stack Those Immutables</a></h2>
 <p>To conclude this introduction, always check that your types are as concrete as possible, that your data structures can be represented by pure bit patterns and stored on the stack if possible. The function <code>isbits</code> helps to figure out if your objects have those desired properties. For example, <code>isbits&#40;&#91;1, 2&#93;&#41; &#61;&#61; false</code> but <code>isbits&#40;&#40;1, 2&#41;&#41; &#61;&#61; true</code>.</p>
@@ -132,14 +132,14 @@ AnyTuple version:
 <p>This is also not nearly all there is to say about the difference between Tuples and Vectors, but it should hopefully get some of the biggest misconceptions out of the way&#33;</p>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Julius Krumbiegel. Last modified: June 22, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Julius Krumbiegel. Last modified: June 23, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->
     
     
         <script src="/libs/highlight/julia.highlight.js"></script>
-
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
 
     
   </body>

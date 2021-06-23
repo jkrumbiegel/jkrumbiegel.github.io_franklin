@@ -47,24 +47,24 @@
 <p><img src="/assets/2020-11-15-makielayout/example_1.svg" alt="Example 1" /></p>
 <p>Among other things, this plot features a colorbar spanning two axes horizontally while aligning perfectly with a neighboring axis, and a legend describing three grids of 3x3 subplots each. The legend is placed in its own subsection instead of right next to or within any of the small subplots. The right colorbar is specifically chosen to align with the bottom content at the outer text border in order to save white-space.</p>
 <p>Here&#39;s a small code example which demonstrates how simple it is to place the elements of the upper half in nested grids. </p>
-<pre><code class="julia hljs">scene, layout = layoutscene(resolution = (<span class="hljs-number">1200</span>, <span class="hljs-number">1000</span>))
+<pre><code class="language-julia">scene, layout &#61; layoutscene&#40;resolution &#61; &#40;1200, 1000&#41;&#41;
 
-top_grid = layout[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>:<span class="hljs-number">3</span>] = GridLayout()
-topleft_grid = top_grid[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>] = GridLayout()
+top_grid &#61; layout&#91;1, 1:3&#93; &#61; GridLayout&#40;&#41;
+topleft_grid &#61; top_grid&#91;1, 1&#93; &#61; GridLayout&#40;&#41;
 
-topleft_grid[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>] = LAxis(scene, title = <span class="hljs-string">&quot;Pyramidal Cells&quot;</span>)
-topleft_grid[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>] = LAxis(scene, title = <span class="hljs-string">&quot;Layer IV Neurons&quot;</span>)
-topleft_grid[<span class="hljs-number">2</span>, :] = LColorbar(scene,
-    vertical = <span class="hljs-literal">false</span>, height = <span class="hljs-number">20</span>,flipaxisposition = <span class="hljs-literal">false</span>,
-    ticklabelalign = (:center, :top), label = <span class="hljs-string">&quot;Spike Rate&quot;</span>)
+topleft_grid&#91;1, 1&#93; &#61; LAxis&#40;scene, title &#61; &quot;Pyramidal Cells&quot;&#41;
+topleft_grid&#91;1, 2&#93; &#61; LAxis&#40;scene, title &#61; &quot;Layer IV Neurons&quot;&#41;
+topleft_grid&#91;2, :&#93; &#61; LColorbar&#40;scene,
+    vertical &#61; false, height &#61; 20,flipaxisposition &#61; false,
+    ticklabelalign &#61; &#40;:center, :top&#41;, label &#61; &quot;Spike Rate&quot;&#41;
 
-top_grid[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>] = LAxis(scene, title = <span class="hljs-string">&quot;Particle Simulation&quot;</span>,
-    xlabel = <span class="hljs-string">&quot;Velocity [m/s]&quot;</span>, ylabel = <span class="hljs-string">&quot;Acceleration [m/s²]&quot;</span>)
-top_grid[<span class="hljs-number">1</span>, <span class="hljs-number">3</span>] = LColorbar(scene, width = <span class="hljs-number">20</span>,
-    label = <span class="hljs-string">&quot;Energy [j/mol]&quot;</span>, alignmode = Outside())
+top_grid&#91;1, 2&#93; &#61; LAxis&#40;scene, title &#61; &quot;Particle Simulation&quot;,
+    xlabel &#61; &quot;Velocity &#91;m/s&#93;&quot;, ylabel &#61; &quot;Acceleration &#91;m/s²&#93;&quot;&#41;
+top_grid&#91;1, 3&#93; &#61; LColorbar&#40;scene, width &#61; 20,
+    label &#61; &quot;Energy &#91;j/mol&#93;&quot;, alignmode &#61; Outside&#40;&#41;&#41;
 
-layout[<span class="hljs-number">2</span>, :] = LRect(scene, color = :gray94)
-layout[<span class="hljs-number">2</span>, :] = LText(scene, <span class="hljs-string">&quot;Group Measurements&quot;</span>, padding = (<span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">5</span>))</code></pre>
+layout&#91;2, :&#93; &#61; LRect&#40;scene, color &#61; :gray94&#41;
+layout&#91;2, :&#93; &#61; LText&#40;scene, &quot;Group Measurements&quot;, padding &#61; &#40;5, 5, 5, 5&#41;&#41;</code></pre>
 <p>In most tools, superficially simple things like adding supertitles, sub-labels, or legends and colorbars in odd places tend to be quite difficult. Tools that do allow for static layout optimizations usually break apart under interactive conditions, when figure size changes dynamically and content has to follow.</p>
 <h2 id="its_grids_all_the_way_down"><a href="#its_grids_all_the_way_down" class="header-anchor">It&#39;s Grids All The Way Down</a></h2>
 <p>MakieLayout allows users to assemble complex graphics or interactive visualizations using flexible grids that are highly customizable for the greatest creative freedom. Elements can shrink or expand to fit the available space, and are always aligned in a visually pleasing way.</p>
@@ -88,14 +88,14 @@ layout[<span class="hljs-number">2</span>, :] = LText(scene, <span class="hljs-s
 <p>To get started, check out the basic <a href="http://makie.juliaplots.org/stable/basic-tutorial.html">Makie tutorial here</a>, and once you get the basics, have a look at the <a href="http://makie.juliaplots.org/stable/makielayout/tutorial.html">MakieLayout tutorial here</a>.</p>
 <div class="page-foot">
   <div class="copyright">
-    &copy; Julius Krumbiegel. Last modified: June 22, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+    &copy; Julius Krumbiegel. Last modified: June 23, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
   </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->
     
     
         <script src="/libs/highlight/julia.highlight.js"></script>
-
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
 
     
   </body>
