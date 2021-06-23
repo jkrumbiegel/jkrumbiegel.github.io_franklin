@@ -185,6 +185,6 @@ span.post-date {
     color: #b0b0b0;
 }
 
-.data-frame table {
+table.data-frame {
     white-space: nowrap;
 }
