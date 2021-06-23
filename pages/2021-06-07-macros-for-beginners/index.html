@@ -44,185 +44,185 @@
 <p>Still, it&#39;s good advice, especially for beginners, to think hard if macros are the right tool for the job, or if run-of-the-mill functions serve the same purpose. Often, functions are preferable because macro magic puts a cognitive burden on the user, it makes it harder to reason about what code does. Before understanding the code, they have to understand the transformation that the macro is doing, which often goes hand in hand with non-standard syntax. That is, unless they are ok with their code having unintended consequences.</p>
 <h2 id="what_does_a_macro_do"><a href="#what_does_a_macro_do" class="header-anchor">What does a macro do?</a></h2>
 <p>Some of the magic of macros derives from the fact that they don&#39;t just generate some predefined code, they rather take the code they are applied to and transform it in useful ways. Variable names are one of the fundamental mechanisms by which we make code understandable for humans. In principle, you could replace every identifier in a working piece of code with something random, and it would still work.</p>
-<pre><code class="julia hljs">profit = revenue - costs
-<span class="hljs-comment"># does the same thing as</span>
-hey = whats - up</code></pre>
+<pre><code class="language-julia">profit &#61; revenue - costs
+# does the same thing as
+hey &#61; whats - up</code></pre>
 <p>The computer doesn&#39;t care about the names, only humans do. But functions run after the code has been transformed into lower-level representations, and names are lost at that point.</p>
 <p>For example, in this code snippet, there is no way for the author of the function to know what the user named their variable. The function just receives a value, and as far as it is concerned, that value is named <code>x</code>.</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">function</span> show_value(x)
-    println(<span class="hljs-string">&quot;The value you passed is &quot;</span>, x)
-<span class="hljs-keyword">end</span>
+<pre><code class="language-julia">function show_value&#40;x&#41;
+    println&#40;&quot;The value you passed is &quot;, x&#41;
+end
 
-orange = <span class="hljs-string">&quot;sweet&quot;</span>
-apple = <span class="hljs-string">&quot;sour&quot;</span>
+orange &#61; &quot;sweet&quot;
+apple &#61; &quot;sour&quot;
 
-show_value(orange)
-show_value(apple)</code></pre>
-<pre><code class="julia hljs">The value you passed is sweet
+show_value&#40;orange&#41;
+show_value&#40;apple&#41;</code></pre>
+<pre><code class="language-julia">The value you passed is sweet
 The value you passed is sour</code></pre>
 <p>Any information about what the user wrote is lost, as the function only knows &quot;sweet&quot; and &quot;sour&quot; were passed. If we want to incorporate the information contained in the variable names, we need a macro.</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">macro</span> show_value(variable)
-    <span class="hljs-keyword">quote</span>
-        println(<span class="hljs-string">&quot;The &quot;</span>, $(string(variable)), <span class="hljs-string">&quot; you passed is &quot;</span>, $(esc(variable)))
-    <span class="hljs-keyword">end</span>
-<span class="hljs-keyword">end</span>
+<pre><code class="language-julia">macro show_value&#40;variable&#41;
+    quote
+        println&#40;&quot;The &quot;, &#36;&#40;string&#40;variable&#41;&#41;, &quot; you passed is &quot;, &#36;&#40;esc&#40;variable&#41;&#41;&#41;
+    end
+end
 
-<span class="hljs-meta">@show_value</span>(orange)
-<span class="hljs-meta">@show_value</span>(apple)</code></pre>
-<pre><code class="julia hljs">The orange you passed is sweet
+@show_value&#40;orange&#41;
+@show_value&#40;apple&#41;</code></pre>
+<pre><code class="language-julia">The orange you passed is sweet
 The apple you passed is sour</code></pre>
 <p>You probably know a macro that works very similar to this one, which is <code>@show</code></p>
-<pre><code class="julia hljs"><span class="hljs-meta">@show</span> orange
-<span class="hljs-meta">@show</span> apple</code></pre>
-<pre><code class="julia hljs">orange = <span class="hljs-string">&quot;sweet&quot;</span>
-apple = <span class="hljs-string">&quot;sour&quot;</span></code></pre>
+<pre><code class="language-julia">@show orange
+@show apple</code></pre>
+<pre><code class="language-julia">orange &#61; &quot;sweet&quot;
+apple &#61; &quot;sour&quot;</code></pre>
 <p>Note that it doesn&#39;t make a difference here if we use parentheses for the macros or not. That&#39;s a feature of Julia&#39;s syntax which makes some macros more tidy to write. This is especially true if the macro precedes a for block or some other multi-line expression.</p>
 <h2 id="how_do_macros_work"><a href="#how_do_macros_work" class="header-anchor">How do macros work?</a></h2>
 <p>Let&#39;s look at our macro in more detail. Even though it&#39;s short, it has a few interesting aspects to it.</p>
 <p>First of all, a macro runs before any code is executed. Therefore, you never have access to any runtime values in a macro. That&#39;s something that trips many beginners up, but is crucial to understand. All the logic in the macro has to happen only using the information you can get from the expressions that the macro is applied to.</p>
 <p>One good step to understand what&#39;s going on with an expression, is to dump it. You can use <code>Meta.@dump</code> for that.</p>
 <p>In our case, it&#39;s not very interesting:</p>
-<pre><code class="julia hljs">Meta.<span class="hljs-meta">@dump</span> orange</code></pre>
-<pre><code class="julia hljs"><span class="hljs-built_in">Symbol</span> orange</code></pre>
+<pre><code class="language-julia">Meta.@dump orange</code></pre>
+<pre><code class="language-julia">Symbol orange</code></pre>
 <p>As you can see, the expression <code>orange</code> contains only the <code>Symbol</code> orange. So that is what our macro gets as input, just <code>:orange</code>. But, again, no runtime information about it being <code>&quot;sweet&quot;</code>.</p>
 <p>Inside the macro, a <code>quote</code> expression is constructed. A <code>quote</code> with source code inside returns an expression object that describes this code. The expression we return from a macro is spliced into the place where the macro call happens, as if you really had written the macro result there. That&#39;s the reason why a macro can&#39;t technically do more than any old Julia code.</p>
 <p>We can see the code that the macro call results in by using another helper macro, <code>@macroexpand</code>.</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@macroexpand</span> <span class="hljs-meta">@show_value</span> orange</code></pre>
-<pre><code class="julia hljs"><span class="hljs-keyword">quote</span>
-    <span class="hljs-comment">#= string:3 =#</span>
-    Main.<span class="hljs-comment">##345.println(&quot;The &quot;, &quot;orange&quot;, &quot; you passed is &quot;, orange)</span>
-<span class="hljs-keyword">end</span></code></pre>
+<pre><code class="language-julia">@macroexpand @show_value orange</code></pre>
+<pre><code class="language-julia">quote
+    #&#61; string:3 &#61;#
+    Main.##345.println&#40;&quot;The &quot;, &quot;orange&quot;, &quot; you passed is &quot;, orange&#41;
+end</code></pre>
 <p>You can see that, ignoring linenumber and module information, the macro created a function call as if we had written</p>
-<pre><code class="julia hljs">println(<span class="hljs-string">&quot;The &quot;</span>, <span class="hljs-string">&quot;orange&quot;</span>, <span class="hljs-string">&quot; you passed is &quot;</span>, orange)</code></pre>
+<pre><code class="language-julia">println&#40;&quot;The &quot;, &quot;orange&quot;, &quot; you passed is &quot;, orange&#41;</code></pre>
 <p>Therefore, let&#39;s look at where the two oranges come from.</p>
 <p>The first one is <code>&quot;orange&quot;</code>, which is a string literal. We achieved this with this expression inside the macro:</p>
-<pre><code class="julia hljs">$(string(variable))</code></pre>
+<pre><code class="language-julia">&#36;&#40;string&#40;variable&#41;&#41;</code></pre>
 <p>Remember that <code>variable</code> holds the <code>Symbol</code> <code>:orange</code> when the macro is called. We convert that to a string and then place that string into the quoted expression using the interpolation symbol <code>&#36;</code>. This is how we can print out a sentence that references the user&#39;s chosen variable name.</p>
 <p>The other <code>orange</code> is just a normal variable name. It was created with the interpolation expression <code>&#36;&#40;esc&#40;variable&#41;&#41;</code>. The <code>esc</code> stands for <code>escape</code> and is another part of macros that is hard to understand for beginners.</p>
 <h2 id="whats_escaping"><a href="#whats_escaping" class="header-anchor">What&#39;s escaping?</a></h2>
 <p>To explain why <code>esc</code> needed, let&#39;s look at a macro that leaves it out. In this example we define the macro in a separate module &#40;because any macro you&#39;d put in a package would not be in the <code>Main</code> module either&#41;:</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">module</span> SomeModule
-    <span class="hljs-keyword">export</span> <span class="hljs-meta">@show_value_no_esc</span>
-    <span class="hljs-keyword">macro</span> show_value_no_esc(variable)
-        <span class="hljs-keyword">quote</span>
-            println(<span class="hljs-string">&quot;The &quot;</span>, $(string(variable)), <span class="hljs-string">&quot; you passed is &quot;</span>, $variable)
-        <span class="hljs-keyword">end</span>
-    <span class="hljs-keyword">end</span>
-<span class="hljs-keyword">end</span>
+<pre><code class="language-julia">module SomeModule
+    export @show_value_no_esc
+    macro show_value_no_esc&#40;variable&#41;
+        quote
+            println&#40;&quot;The &quot;, &#36;&#40;string&#40;variable&#41;&#41;, &quot; you passed is &quot;, &#36;variable&#41;
+        end
+    end
+end
 
-<span class="hljs-keyword">using</span> .SomeModule
+using .SomeModule
 
-<span class="hljs-keyword">try</span>
-    <span class="hljs-meta">@show_value_no_esc</span>(orange)
-<span class="hljs-keyword">catch</span> e
-    sprint(showerror, e)
-<span class="hljs-keyword">end</span></code></pre>
-<pre><code class="julia hljs"><span class="hljs-string">&quot;UndefVarError: orange not defined&quot;</span></code></pre>
+try
+    @show_value_no_esc&#40;orange&#41;
+catch e
+    sprint&#40;showerror, e&#41;
+end</code></pre>
+<pre><code class="language-julia">&quot;UndefVarError: orange not defined&quot;</code></pre>
 <p>The code errors because there is no variable <code>orange</code>. But there should be, we interpolated it right there&#33; Let&#39;s look at the macro output with <code>@macroexpand</code> again:</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@macroexpand</span> <span class="hljs-meta">@show_value_no_esc</span>(orange)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-keyword">quote</span>
-    <span class="hljs-comment">#= string:5 =#</span>
-    Main.<span class="hljs-comment">##345.SomeModule.println(&quot;The &quot;, &quot;orange&quot;, &quot; you passed is &quot;, Main.##345.SomeModule.orange)</span>
-<span class="hljs-keyword">end</span></code></pre>
+<pre><code class="language-julia">@macroexpand @show_value_no_esc&#40;orange&#41;</code></pre>
+<pre><code class="language-julia">quote
+    #&#61; string:5 &#61;#
+    Main.##345.SomeModule.println&#40;&quot;The &quot;, &quot;orange&quot;, &quot; you passed is &quot;, Main.##345.SomeModule.orange&#41;
+end</code></pre>
 <p>Ok, so the variable looked up is actually <code>SomeModule.orange</code>, and of course we didn&#39;t define a variable with that name in <code>SomeModule</code>. The reason this happens is that macros do often need to reference values from whatever module they were defined in. For example, to add a helper function that also lives in that module to the user&#39;s code. Any variable name used in the created expression is looked up in the macro&#39;s parent module by default.</p>
 <p>The other reason is that it is potentially dangerous to just change or create variables in user space in a macro that knows nothing about what&#39;s going on there.</p>
 <p>Imagine the writer of the macro and the user as two people who know nothing about each other. They only interface via the small snippet of code passed to the macro. So, obviously, the macro shouldn&#39;t mess around with the user&#39;s variables.</p>
 <p>In theory, a macro could insert things like <code>my_variable &#61; nothing</code> or <code>empty&#33;&#40;some_array&#41;</code> in the place where it&#39;s used. But imagine the user already has a <code>my_variable</code> and it happens to hold the result of a computation that ran hours. As the macro writer doesn&#39;t know anything about the variables the user has created, all macro-created variables are by default scoped to the macro&#39;s module to avoid conflicts.</p>
 <p>Here&#39;s a short example of bad escaping, with a macro that is not really supposed to do anything:</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">macro</span> change_nothing(exp)
-    e = <span class="hljs-keyword">quote</span>
-        temp_variable = <span class="hljs-literal">nothing</span> <span class="hljs-comment"># this could be some intermediate computation</span>
-        $exp <span class="hljs-comment"># we actually just pass the input expression back unchanged</span>
-    <span class="hljs-keyword">end</span>
-    esc(e) <span class="hljs-comment"># but everything is escaped</span>
-<span class="hljs-keyword">end</span>
+<pre><code class="language-julia">macro change_nothing&#40;exp&#41;
+    e &#61; quote
+        temp_variable &#61; nothing # this could be some intermediate computation
+        &#36;exp # we actually just pass the input expression back unchanged
+    end
+    esc&#40;e&#41; # but everything is escaped
+end
 
-<span class="hljs-comment"># a user who happens to have a temp variable calls this macro...</span>
+# a user who happens to have a temp variable calls this macro...
 
-temp_variable = <span class="hljs-string">&quot;important information&quot;</span>
-x = <span class="hljs-meta">@change_nothing</span> <span class="hljs-number">1</span> + <span class="hljs-number">1</span>
+temp_variable &#61; &quot;important information&quot;
+x &#61; @change_nothing 1 &#43; 1
 
-<span class="hljs-meta">@show</span> x
-<span class="hljs-meta">@show</span> temp_variable</code></pre>
-<pre><code class="julia hljs">x = <span class="hljs-number">2</span>
-temp_variable = <span class="hljs-literal">nothing</span></code></pre>
+@show x
+@show temp_variable</code></pre>
+<pre><code class="language-julia">x &#61; 2
+temp_variable &#61; nothing</code></pre>
 <p>Whoops, the <code>temp_variable</code> was overwritten by the macro, and this can happen with badly written macros.</p>
 <p>But still, in order to access the value of the user&#39;s variable <code>orange</code>, we need to <code>escape</code> the use of that symbol in our generated expression. Escaping the variable could be summarized as saying &quot;treat this variable like a variable the user has written themselves&quot;.</p>
 <p>As a rule of thumb, macros should only ever escape variables that they know about because they were passed to the macro. These are the variables that the user potentially wants to have changed by the macro, or at least they are aware that they could be subject to change.</p>
 <p>Here you can see another example, where there is both a user and a module orange:</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">module</span> AnotherModule
-    <span class="hljs-keyword">export</span> <span class="hljs-meta">@show_value_user_and_module</span>
+<pre><code class="language-julia">module AnotherModule
+    export @show_value_user_and_module
 
-    orange = <span class="hljs-string">&quot;bitter&quot;</span>
+    orange &#61; &quot;bitter&quot;
 
-    <span class="hljs-keyword">macro</span> show_value_user_and_module(variable)
-        <span class="hljs-keyword">quote</span>
-            println(<span class="hljs-string">&quot;The &quot;</span>, $(string(variable)), <span class="hljs-string">&quot; you passed is &quot;</span>, $(esc(variable)),
-                <span class="hljs-string">&quot; and the one from the module is &quot;</span>, $variable)
-        <span class="hljs-keyword">end</span>
-    <span class="hljs-keyword">end</span>
-<span class="hljs-keyword">end</span>
+    macro show_value_user_and_module&#40;variable&#41;
+        quote
+            println&#40;&quot;The &quot;, &#36;&#40;string&#40;variable&#41;&#41;, &quot; you passed is &quot;, &#36;&#40;esc&#40;variable&#41;&#41;,
+                &quot; and the one from the module is &quot;, &#36;variable&#41;
+        end
+    end
+end
 
-<span class="hljs-keyword">using</span> .AnotherModule
+using .AnotherModule
 
-<span class="hljs-meta">@show_value_user_and_module</span> orange</code></pre>
-<pre><code class="julia hljs">The orange you passed is sweet and the one from the <span class="hljs-keyword">module</span> is bitter</code></pre>
+@show_value_user_and_module orange</code></pre>
+<pre><code class="language-julia">The orange you passed is sweet and the one from the module is bitter</code></pre>
 <h2 id="modifying_expressions"><a href="#modifying_expressions" class="header-anchor">Modifying expressions</a></h2>
 <p>Even though we could already see some interesting macro properties, maybe you didn&#39;t start reading this article to learn about printing users their own variable names back &#40;even though that is a very user friendly behavior in general, and many R users like their non-standard evaluation a lot for this reason&#41;.</p>
 <p>Usually, you want to modify the expression you receive, or build a new one with it, to achieve some functional purpose. Sometimes, macros are used to define domain specific languages or DSLs, that allow users to specify complex things with simple, yet non-standard expressions.</p>
 <p>A good example for this are the formulas from <code>StatsModels.jl</code>, where <code>@formula&#40;y ~ x&#41;</code> is a nice shortcut to create a formula object that you could in principle build yourself without a macro, but with much more typing.</p>
 <p>Let&#39;s try to write a small useful macro that transforms a real expression&#33;</p>
 <p>An issue some Julia users face once in a while, is that the <code>fill</code> function&#39;s argument is executed once, and then the whole vector is filled with that result. Let&#39;s say we want a vector of 5 three-element random vectors.</p>
-<pre><code class="julia hljs">rand_vec = fill(rand(<span class="hljs-number">3</span>), <span class="hljs-number">5</span>)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">5</span>-element <span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Float64</span>}}:
- [<span class="hljs-number">0.6812848357202166</span>, <span class="hljs-number">0.4029451418936725</span>, <span class="hljs-number">0.6175275330130934</span>]
- [<span class="hljs-number">0.6812848357202166</span>, <span class="hljs-number">0.4029451418936725</span>, <span class="hljs-number">0.6175275330130934</span>]
- [<span class="hljs-number">0.6812848357202166</span>, <span class="hljs-number">0.4029451418936725</span>, <span class="hljs-number">0.6175275330130934</span>]
- [<span class="hljs-number">0.6812848357202166</span>, <span class="hljs-number">0.4029451418936725</span>, <span class="hljs-number">0.6175275330130934</span>]
- [<span class="hljs-number">0.6812848357202166</span>, <span class="hljs-number">0.4029451418936725</span>, <span class="hljs-number">0.6175275330130934</span>]</code></pre>
+<pre><code class="language-julia">rand_vec &#61; fill&#40;rand&#40;3&#41;, 5&#41;</code></pre>
+<pre><code class="language-julia">5-element Vector&#123;Vector&#123;Float64&#125;&#125;:
+ &#91;0.6812848357202166, 0.4029451418936725, 0.6175275330130934&#93;
+ &#91;0.6812848357202166, 0.4029451418936725, 0.6175275330130934&#93;
+ &#91;0.6812848357202166, 0.4029451418936725, 0.6175275330130934&#93;
+ &#91;0.6812848357202166, 0.4029451418936725, 0.6175275330130934&#93;
+ &#91;0.6812848357202166, 0.4029451418936725, 0.6175275330130934&#93;</code></pre>
 <p>As you can see, every vector is the same, which we don&#39;t want. A way to get our desired result is with a list comprehension:</p>
-<pre><code class="julia hljs">rand_vec = [rand(<span class="hljs-number">3</span>) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">5</span>]</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">5</span>-element <span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Float64</span>}}:
- [<span class="hljs-number">0.49019315470583913</span>, <span class="hljs-number">0.34278729269778063</span>, <span class="hljs-number">0.9397324805200158</span>]
- [<span class="hljs-number">0.8550409141676747</span>, <span class="hljs-number">0.10951003155142769</span>, <span class="hljs-number">0.5868983985077327</span>]
- [<span class="hljs-number">0.21187936828897747</span>, <span class="hljs-number">0.8734015984778174</span>, <span class="hljs-number">0.7339785144559376</span>]
- [<span class="hljs-number">0.9014223088150919</span>, <span class="hljs-number">0.3676390393951927</span>, <span class="hljs-number">0.7322306471315203</span>]
- [<span class="hljs-number">0.09559583305483077</span>, <span class="hljs-number">0.6050374787289248</span>, <span class="hljs-number">0.6993212571694867</span>]</code></pre>
+<pre><code class="language-julia">rand_vec &#61; &#91;rand&#40;3&#41; for _ in 1:5&#93;</code></pre>
+<pre><code class="language-julia">5-element Vector&#123;Vector&#123;Float64&#125;&#125;:
+ &#91;0.49019315470583913, 0.34278729269778063, 0.9397324805200158&#93;
+ &#91;0.8550409141676747, 0.10951003155142769, 0.5868983985077327&#93;
+ &#91;0.21187936828897747, 0.8734015984778174, 0.7339785144559376&#93;
+ &#91;0.9014223088150919, 0.3676390393951927, 0.7322306471315203&#93;
+ &#91;0.09559583305483077, 0.6050374787289248, 0.6993212571694867&#93;</code></pre>
 <p>This works, but the fill syntax is so nice and short in comparison. Also it gets even worse if you are iterating multiple dimensions in nested for loops, while you can always write <code>fill&#40;rand&#40;3&#41;, 3, 4, 5&#41;</code>.</p>
 <p>So can we write a macro that makes a list comprehension expression out of a call like <code>@fill&#40;rand&#40;3&#41;, 5&#41;</code>, so that the first argument is executed anew in each iteration? Let&#39;s try it&#33;</p>
 <p>The first step is always to understand what expression you&#39;re even trying to build. We already use two iterators here to understand how multiple are handled in the resulting expression:</p>
-<pre><code class="julia hljs">Meta.<span class="hljs-meta">@dump</span> [rand(<span class="hljs-number">3</span>) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">5</span>, _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">3</span>]</code></pre>
-<pre><code class="julia hljs"><span class="hljs-built_in">Expr</span>
-  head: <span class="hljs-built_in">Symbol</span> comprehension
-  args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">1</span>,))
-    <span class="hljs-number">1</span>: <span class="hljs-built_in">Expr</span>
-      head: <span class="hljs-built_in">Symbol</span> generator
-      args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">3</span>,))
-        <span class="hljs-number">1</span>: <span class="hljs-built_in">Expr</span>
-          head: <span class="hljs-built_in">Symbol</span> call
-          args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">2</span>,))
-            <span class="hljs-number">1</span>: <span class="hljs-built_in">Symbol</span> rand
-            <span class="hljs-number">2</span>: <span class="hljs-built_in">Int64</span> <span class="hljs-number">3</span>
-        <span class="hljs-number">2</span>: <span class="hljs-built_in">Expr</span>
-          head: <span class="hljs-built_in">Symbol</span> =
-          args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">2</span>,))
-            <span class="hljs-number">1</span>: <span class="hljs-built_in">Symbol</span> _
-            <span class="hljs-number">2</span>: <span class="hljs-built_in">Expr</span>
-              head: <span class="hljs-built_in">Symbol</span> call
-              args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">3</span>,))
-                <span class="hljs-number">1</span>: <span class="hljs-built_in">Symbol</span> :
-                <span class="hljs-number">2</span>: <span class="hljs-built_in">Int64</span> <span class="hljs-number">1</span>
-                <span class="hljs-number">3</span>: <span class="hljs-built_in">Int64</span> <span class="hljs-number">5</span>
-        <span class="hljs-number">3</span>: <span class="hljs-built_in">Expr</span>
-          head: <span class="hljs-built_in">Symbol</span> =
-          args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">2</span>,))
-            <span class="hljs-number">1</span>: <span class="hljs-built_in">Symbol</span> _
-            <span class="hljs-number">2</span>: <span class="hljs-built_in">Expr</span>
-              head: <span class="hljs-built_in">Symbol</span> call
-              args: <span class="hljs-built_in">Array</span>{<span class="hljs-built_in">Any</span>}((<span class="hljs-number">3</span>,))
-                <span class="hljs-number">1</span>: <span class="hljs-built_in">Symbol</span> :
-                <span class="hljs-number">2</span>: <span class="hljs-built_in">Int64</span> <span class="hljs-number">1</span>
-                <span class="hljs-number">3</span>: <span class="hljs-built_in">Int64</span> <span class="hljs-number">3</span></code></pre>
+<pre><code class="language-julia">Meta.@dump &#91;rand&#40;3&#41; for _ in 1:5, _ in 1:3&#93;</code></pre>
+<pre><code class="language-julia">Expr
+  head: Symbol comprehension
+  args: Array&#123;Any&#125;&#40;&#40;1,&#41;&#41;
+    1: Expr
+      head: Symbol generator
+      args: Array&#123;Any&#125;&#40;&#40;3,&#41;&#41;
+        1: Expr
+          head: Symbol call
+          args: Array&#123;Any&#125;&#40;&#40;2,&#41;&#41;
+            1: Symbol rand
+            2: Int64 3
+        2: Expr
+          head: Symbol &#61;
+          args: Array&#123;Any&#125;&#40;&#40;2,&#41;&#41;
+            1: Symbol _
+            2: Expr
+              head: Symbol call
+              args: Array&#123;Any&#125;&#40;&#40;3,&#41;&#41;
+                1: Symbol :
+                2: Int64 1
+                3: Int64 5
+        3: Expr
+          head: Symbol &#61;
+          args: Array&#123;Any&#125;&#40;&#40;2,&#41;&#41;
+            1: Symbol _
+            2: Expr
+              head: Symbol call
+              args: Array&#123;Any&#125;&#40;&#40;3,&#41;&#41;
+                1: Symbol :
+                2: Int64 1
+                3: Int64 3</code></pre>
 <p>Aha, now we actually see some real expressions. Every <code>Expr</code> object has a <code>head</code> that stores what kind of expression it is, and a vector called <code>args</code> which contains all arguments to that expression.</p>
 <p>We can see that a list comprehension is made by making an <code>Expr</code> where the head is <code>:comprehension</code>. There&#39;s only one argument to that expression, which is a :generator expression. This one in turn is assembled of the expression being called in each iteration, and the iteration expressions <code>_ &#61; 1:5</code> and <code>_ &#61; 1:3</code>.</p>
 <p>We want to use the syntax <code>@fill&#40;rand&#40;3&#41;, sizes...&#41;</code>, so we need to think how we can transform those two arguments into the expression we want.</p>
@@ -230,58 +230,58 @@ temp_variable = <span class="hljs-literal">nothing</span></code></pre>
 <p>Here we go:</p>
 <p>For each size argument, we make one of the iterator expressions that we saw in the dump above. We escape each size variable <code>s</code> because those are the arguments that the user will write themselves, and they need to resolve correctly in their scope later.</p>
 <p>The comprehension expression then receives the first argument escaped because that expression also needs to run as-is in the user&#39;s scope.</p>
-<pre><code class="julia hljs"><span class="hljs-keyword">macro</span> fill(exp, sizes...)
+<pre><code class="language-julia">macro fill&#40;exp, sizes...&#41;
 
-    iterator_expressions = map(sizes) <span class="hljs-keyword">do</span> s
-        <span class="hljs-built_in">Expr</span>(
-            :(=),
+    iterator_expressions &#61; map&#40;sizes&#41; do s
+        Expr&#40;
+            :&#40;&#61;&#41;,
             :_,
-            <span class="hljs-keyword">quote</span> <span class="hljs-number">1</span>:$(esc(s)) <span class="hljs-keyword">end</span>
-        )
-    <span class="hljs-keyword">end</span>
+            quote 1:&#36;&#40;esc&#40;s&#41;&#41; end
+        &#41;
+    end
 
-    <span class="hljs-built_in">Expr</span>(
+    Expr&#40;
         :comprehension,
-        esc(exp),
+        esc&#40;exp&#41;,
         iterator_expressions...
-    )
-<span class="hljs-keyword">end</span></code></pre>
-<pre><code class="julia hljs"><span class="hljs-meta">@fill</span> (<span class="hljs-keyword">macro</span> with <span class="hljs-number">1</span> method)</code></pre>
+    &#41;
+end</code></pre>
+<pre><code class="language-julia">@fill &#40;macro with 1 method&#41;</code></pre>
 <p>Let&#39;s try it out:</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@fill</span>(rand(<span class="hljs-number">3</span>), <span class="hljs-number">5</span>)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">5</span>-element <span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Float64</span>}}:
- [<span class="hljs-number">0.1139113373998224</span>, <span class="hljs-number">0.3573470989058838</span>, <span class="hljs-number">0.4386214468752223</span>]
- [<span class="hljs-number">0.1509185991824915</span>, <span class="hljs-number">0.7155213148212995</span>, <span class="hljs-number">0.9799036243798529</span>]
- [<span class="hljs-number">0.5343541641851779</span>, <span class="hljs-number">0.006877254139170619</span>, <span class="hljs-number">0.33470902481149567</span>]
- [<span class="hljs-number">0.8011467320748902</span>, <span class="hljs-number">0.6785417555929447</span>, <span class="hljs-number">0.3549453187879492</span>]
- [<span class="hljs-number">0.734276208322437</span>, <span class="hljs-number">0.893731178943594</span>, <span class="hljs-number">0.8288924117876237</span>]</code></pre>
+<pre><code class="language-julia">@fill&#40;rand&#40;3&#41;, 5&#41;</code></pre>
+<pre><code class="language-julia">5-element Vector&#123;Vector&#123;Float64&#125;&#125;:
+ &#91;0.1139113373998224, 0.3573470989058838, 0.4386214468752223&#93;
+ &#91;0.1509185991824915, 0.7155213148212995, 0.9799036243798529&#93;
+ &#91;0.5343541641851779, 0.006877254139170619, 0.33470902481149567&#93;
+ &#91;0.8011467320748902, 0.6785417555929447, 0.3549453187879492&#93;
+ &#91;0.734276208322437, 0.893731178943594, 0.8288924117876237&#93;</code></pre>
 <p>A good check if you&#39;ve escaped correctly is to pass expressions that reference some local variables. The call will error if you&#39;ve forgotten to escape any of them:</p>
-<pre><code class="julia hljs">n = <span class="hljs-number">3</span>
-k = <span class="hljs-number">5</span>
+<pre><code class="language-julia">n &#61; 3
+k &#61; 5
 
-<span class="hljs-meta">@fill</span>(rand(n), k)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">5</span>-element <span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Vector</span>{<span class="hljs-built_in">Float64</span>}}:
- [<span class="hljs-number">0.4469838582877874</span>, <span class="hljs-number">0.7998077151200393</span>, <span class="hljs-number">0.18358119718987465</span>]
- [<span class="hljs-number">0.6888585634220834</span>, <span class="hljs-number">0.7567563653659923</span>, <span class="hljs-number">0.9326624004544035</span>]
- [<span class="hljs-number">0.6764494427437526</span>, <span class="hljs-number">0.6575388834261413</span>, <span class="hljs-number">0.9856806991262359</span>]
- [<span class="hljs-number">0.25283883620967096</span>, <span class="hljs-number">0.46747585157183225</span>, <span class="hljs-number">0.5292280679523935</span>]
- [<span class="hljs-number">0.5216051998736333</span>, <span class="hljs-number">0.17855087440498796</span>, <span class="hljs-number">0.5920478781909175</span>]</code></pre>
+@fill&#40;rand&#40;n&#41;, k&#41;</code></pre>
+<pre><code class="language-julia">5-element Vector&#123;Vector&#123;Float64&#125;&#125;:
+ &#91;0.4469838582877874, 0.7998077151200393, 0.18358119718987465&#93;
+ &#91;0.6888585634220834, 0.7567563653659923, 0.9326624004544035&#93;
+ &#91;0.6764494427437526, 0.6575388834261413, 0.9856806991262359&#93;
+ &#91;0.25283883620967096, 0.46747585157183225, 0.5292280679523935&#93;
+ &#91;0.5216051998736333, 0.17855087440498796, 0.5920478781909175&#93;</code></pre>
 <p>This works fine&#33; It should also work with more size arguments, we&#39;ll generate only random scalars so the printout is manageable:</p>
-<pre><code class="julia hljs"><span class="hljs-meta">@fill</span>(rand(), <span class="hljs-number">5</span>, <span class="hljs-number">3</span>)</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">5</span>×<span class="hljs-number">3</span> <span class="hljs-built_in">Matrix</span>{<span class="hljs-built_in">Float64</span>}:
- <span class="hljs-number">0.352458</span>  <span class="hljs-number">0.461203</span>  <span class="hljs-number">0.0771023</span>
- <span class="hljs-number">0.75737</span>   <span class="hljs-number">0.846353</span>  <span class="hljs-number">0.568566</span>
- <span class="hljs-number">0.113605</span>  <span class="hljs-number">0.143548</span>  <span class="hljs-number">0.0720151</span>
- <span class="hljs-number">0.978347</span>  <span class="hljs-number">0.872861</span>  <span class="hljs-number">0.404885</span>
- <span class="hljs-number">0.453787</span>  <span class="hljs-number">0.070237</span>  <span class="hljs-number">0.131692</span></code></pre>
+<pre><code class="language-julia">@fill&#40;rand&#40;&#41;, 5, 3&#41;</code></pre>
+<pre><code class="language-julia">5×3 Matrix&#123;Float64&#125;:
+ 0.352458  0.461203  0.0771023
+ 0.75737   0.846353  0.568566
+ 0.113605  0.143548  0.0720151
+ 0.978347  0.872861  0.404885
+ 0.453787  0.070237  0.131692</code></pre>
 <p>Even though this particular example is contrived for simplicity &#40;we could just use <code>rand&#40;5, 3</code> of course&#41; compare it to the alternative list comprehension syntax:</p>
-<pre><code class="julia hljs">[rand() <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">5</span>, _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span>:<span class="hljs-number">3</span>]</code></pre>
-<pre><code class="julia hljs"><span class="hljs-number">5</span>×<span class="hljs-number">3</span> <span class="hljs-built_in">Matrix</span>{<span class="hljs-built_in">Float64</span>}:
- <span class="hljs-number">0.319974</span>  <span class="hljs-number">0.0158858</span>  <span class="hljs-number">0.0787176</span>
- <span class="hljs-number">0.528733</span>  <span class="hljs-number">0.351109</span>   <span class="hljs-number">0.644796</span>
- <span class="hljs-number">0.629348</span>  <span class="hljs-number">0.591767</span>   <span class="hljs-number">0.0105735</span>
- <span class="hljs-number">0.300175</span>  <span class="hljs-number">0.19276</span>    <span class="hljs-number">0.983526</span>
- <span class="hljs-number">0.741385</span>  <span class="hljs-number">0.593077</span>   <span class="hljs-number">0.559216</span></code></pre>
+<pre><code class="language-julia">&#91;rand&#40;&#41; for _ in 1:5, _ in 1:3&#93;</code></pre>
+<pre><code class="language-julia">5×3 Matrix&#123;Float64&#125;:
+ 0.319974  0.0158858  0.0787176
+ 0.528733  0.351109   0.644796
+ 0.629348  0.591767   0.0105735
+ 0.300175  0.19276    0.983526
+ 0.741385  0.593077   0.559216</code></pre>
 <h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2>
 <p>As you can see, macros can be a gain in syntax clarity, and they offer a powerful way to interact with the user&#39;s source code.</p>
 <p>Just remember that a reader also needs to understand what&#39;s happening. In our example, <code>rand&#40;&#41;</code> is not just executed once but many times, which is non-standard behavior for something resembling a function call. This code-reasoning overhead must always be weighed against the convenience of shorter syntax.</p>
@@ -295,7 +295,7 @@ k = <span class="hljs-number">5</span>
     
     
         <script src="/libs/highlight/julia.highlight.js"></script>
-
+<script>hljs.initHighlightingOnLoad();hljs.configure({tabReplace: '    '});</script>
 
     
   </body>
