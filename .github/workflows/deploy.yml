@@ -37,8 +37,8 @@ jobs:
             using Franklin;
             Franklin.HIGHLIGHTJS[] = joinpath(pwd(), "_libs/highlight/julia.highlight.js");
             Pkg.activate("."); Pkg.instantiate();
-            optimize(minify = false);
-            optimize(minify = false)'
+            optimize(minify = false, prerender = false);
+            optimize(minify = false, prerender = true)'
     - name: Build and Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
