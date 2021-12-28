@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5JSWMN3EQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-W5JSWMN3EQ');
+  </script>
+
+  
+   <link rel="stylesheet" href="/libs/highlight/julius.custom.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+  <link rel="stylesheet" href="/css/basic.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <!-- <link rel="icon" href="/assets/favicon.png"> -->
+   <title>Multi-columns, shortcut strings and subset transformations in DataFrameMacros.jl v0.2</title>  
+</head>
+<body>
+  <header>
+<div class="blog-name"><a href="/">thoughts & priors</a></div>
+<nav>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="/photography">Photography</a></li>
+  </ul>
+  <img src="/assets/hamburger.svg" id="menu-icon">
+</nav>
+</header>
+
+
+<!-- Content appended here -->
+<div class="franklin-content"><h1 id="multi-columns_shortcut_strings_and_subset_transformations_in_dataframemacrosjl_v02"><a href="#multi-columns_shortcut_strings_and_subset_transformations_in_dataframemacrosjl_v02" class="header-anchor">Multi-columns, shortcut strings and subset transformations in DataFrameMacros.jl v0.2</a></h1>
+<p>DataFrameMacros.jl is a Julia package that makes it easier to manipulate DataFrames, by rewriting code into source-function-sink expressions that conform to DataFrames.jl&#39;s more verbose mini-language. In version v0.2 &#40;and v0.2.1&#41; I have added a couple new features that are powerful, but not immediately obvious. This post takes a closer look at the new functionality.</p>
+<p>The new features are multi-column specifiers, shortcut strings for renaming and subset transformations.</p>
+<h2 id="multi-column_specifiers"><a href="#multi-column_specifiers" class="header-anchor">Multi-column specifiers</a></h2>
+<p>So far, DataFrameMacros.jl only supported statements with single-column specifiers. For example, <code>@select&#40;df, :x &#43; 1&#41;</code> or <code>@combine&#40;df, &#36;column_variable * &#36;2&#41;</code>. The expressions <code>:x</code>, <code>&#36;column_variable</code> and <code>&#36;2</code> all refer to one column each. The underlying source-function-sink expression that DataFrameMacros.jl created was therefore always of the form <code>source &#61;&gt; function &#61;&gt; sink</code>. For many tasks this is perfectly sufficient, but other times one wants to execute the same function over a set of similar or related columns.</p>
+<p>DataFrames.jl has a neat way to run the same function on a set of columns. This is done by using the <code>.&#61;&gt;</code> operator, to broadcast over the a set or sets of columns and create an array of <code>source &#61;&gt; function &#61;&gt; sink</code> expressions. For example, you could compute the sum for each column in a DataFrame with <code>transform&#40;df, names&#40;df, All&#40;&#41;&#41; .&#61;&gt; sum&#41;</code>, or in the recent v1.3 release even with <code>transform&#40;df, All&#40;&#41; .&#61;&gt; sum&#41;</code>.</p>
+<p>Now, the trick that DataFrameMacros.jl v0.2.1 uses is to change the underlying representation from <code>source &#61;&gt; function &#61;&gt; sink</code> to <code>source&#40;s&#41; .&#61;&gt; function&#40;s&#41; .&#61;&gt; sink&#40;s&#41;</code>. This doesn&#39;t break the existing functionality, because scalars in Julia broadcast just fine, so it&#39;s no problem to say something like <code>combine&#40;df, :x .&#61;&gt; sum .&#61;&gt; &quot;y&quot;&#41;</code> - even though broadcasting doesn&#39;t add anything if only scalars participate.</p>
+<p>Where it gets interesting is when collections of columns are used. With the change to <code>source&#40;s&#41; .&#61;&gt; function&#40;s&#41; .&#61;&gt; sink&#40;s&#41;</code> you are now free to use column expressions that refer to multiple columns. The only restriction is that the shapes of <code>source&#40;s&#41;</code>, <code>function&#40;s&#41;</code> and <code>sink&#40;s&#41;</code> have to be compatible for broadcasting.</p>
+<p>There are multiple ways in which you can reference multiple columns at once, and they are closely related to what <code>x</code> can be in the function <code>names&#40;df, x&#41;</code>. For example, <code>All&#40;&#41;</code>, <code>Between&#40;x, y&#41;</code> and <code>Not&#40;args...&#41;</code> are now recognized directly as multi-column specifiers by DataFrameMacros, without having to mark them with the usual <code>&#36;</code> sign. Then you can use any <code>Type</code> <code>T</code> marked by <code>&#36;</code>, which selects all columns whose elements are subtypes of <code>T</code>, for example <code>&#36;Real</code> or <code>&#36;String</code>. You can use a regex that selects all columns with matching names, for example <code>&#36;&#40;r&quot;a&quot;&#41;</code> for any column with the letter <code>a</code>. Of course it&#39;s also possible to just pass an array of column names, for example <code>&#36;&#91;&quot;a&quot;, &quot;b&quot;&#93;</code>.</p>
+<p>Here are a few practical examples:</p>
+<pre><code class="julia hljs"><span class="hljs-keyword">using</span> DataFrameMacros
+<span class="hljs-keyword">using</span> DataFrames
+
+df <span class="hljs-keyword">=</span> <span class="hljs-built_in">DataFrame</span>(
+    name <span class="hljs-keyword">=</span> [<span class="hljs-string">&quot;alice&quot;</span>, <span class="hljs-string">&quot;bob&quot;</span>, <span class="hljs-string">&quot;charlie&quot;</span>],
+    age <span class="hljs-keyword">=</span> [<span class="hljs-number">20</span>, <span class="hljs-number">31</span>, <span class="hljs-number">42</span>],
+    country <span class="hljs-keyword">=</span> [<span class="hljs-string">&quot;andorra&quot;</span>, <span class="hljs-string">&quot;brazil&quot;</span>, <span class="hljs-string">&quot;croatia&quot;</span>],
+    salary <span class="hljs-keyword">=</span> [<span class="hljs-number">9999</span>, <span class="hljs-number">6666</span>, <span class="hljs-number">3333</span>],
+)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ name     age    country  salary
+     │ <span class="hljs-type">String</span>   <span class="hljs-type">Int64</span>  <span class="hljs-type">String</span>   <span class="hljs-type">Int64</span>
+─────┼─────────────────────────────────
+   <span class="hljs-number">1</span> │ alice       <span class="hljs-number">20</span>  andorra    <span class="hljs-number">9999</span>
+   <span class="hljs-number">2</span> │ bob         <span class="hljs-number">31</span>  brazil     <span class="hljs-number">6666</span>
+   <span class="hljs-number">3</span> │ charlie     <span class="hljs-number">42</span>  croatia    <span class="hljs-number">3333</span></code></pre>
+<p>We can transform both <code>String</code> columns at once and both <code>Int</code> columns at once, by using the <code>Type</code> multi-column specifier.</p>
+<pre><code class="julia hljs">x <span class="hljs-keyword">=</span> <span class="hljs-meta">@select</span> df <span class="hljs-keyword">begin</span>
+    <span class="hljs-built_in">uppercasefirst</span>(<span class="hljs-built_in">$</span><span class="hljs-type">String</span>)
+    <span class="hljs-built_in">Float64</span>(<span class="hljs-built_in">$</span><span class="hljs-type">Int</span>)
+<span class="hljs-keyword">end</span>
+<span class="hljs-built_in">print</span>(x)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ name_uppercasefirst  country_uppercasefirst  age_Float64  salary_Float64
+     │ <span class="hljs-type">String</span>               <span class="hljs-type">String</span>                  <span class="hljs-type">Float64</span>      <span class="hljs-type">Float64</span>
+─────┼──────────────────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │ Alice                Andorra                        <span class="hljs-number">20.0</span>          <span class="hljs-number">9999.0</span>
+   <span class="hljs-number">2</span> │ Bob                  Brazil                         <span class="hljs-number">31.0</span>          <span class="hljs-number">6666.0</span>
+   <span class="hljs-number">3</span> │ Charlie              Croatia                        <span class="hljs-number">42.0</span>          <span class="hljs-number">3333.0</span></code></pre>
+<p>We can try out the <code>All&#40;&#41;</code> specifier by reversing the element order of each column. We need the <code>@c</code> flag so <code>reverse</code> acts on each column vector and not each column element. This works the same way with the <code>Between</code> and <code>Not</code> selectors.</p>
+<pre><code class="julia hljs"><span class="hljs-meta">@select</span> df <span class="hljs-meta">@c</span> <span class="hljs-built_in">reverse</span>(<span class="hljs-built_in">All</span>())
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ name_reverse  age_reverse  country_reverse  salary_reverse
+     │ <span class="hljs-type">String</span>        <span class="hljs-type">Int64</span>        <span class="hljs-type">String</span>           <span class="hljs-type">Int64</span>
+─────┼────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │ charlie                <span class="hljs-number">42</span>  croatia                    <span class="hljs-number">3333</span>
+   <span class="hljs-number">2</span> │ bob                    <span class="hljs-number">31</span>  brazil                     <span class="hljs-number">6666</span>
+   <span class="hljs-number">3</span> │ alice                  <span class="hljs-number">20</span>  andorra                    <span class="hljs-number">9999</span></code></pre>
+<p>We can combine multi-column specifiers with single-column specifiers, they can always broadcast together because scalars work together with any shape. For example, let&#39;s say we have a column with tax rates and four columns with quarterly gains and we want to compute the quarterly taxes.</p>
+<pre><code class="julia hljs">df <span class="hljs-keyword">=</span> <span class="hljs-built_in">DataFrame</span>(
+    year <span class="hljs-keyword">=</span> [<span class="hljs-number">2019</span>, <span class="hljs-number">2020</span>, <span class="hljs-number">2021</span>],
+    tax_rate <span class="hljs-keyword">=</span> [<span class="hljs-number">0.19</span>, <span class="hljs-number">0.20</span>, <span class="hljs-number">0.21</span>],
+    income_q1 <span class="hljs-keyword">=</span> [<span class="hljs-number">2000</span>, <span class="hljs-number">3000</span>, <span class="hljs-number">4000</span>],
+    income_q2 <span class="hljs-keyword">=</span> [<span class="hljs-number">2100</span>, <span class="hljs-number">3100</span>, <span class="hljs-number">4100</span>],
+    income_q3 <span class="hljs-keyword">=</span> [<span class="hljs-number">2200</span>, <span class="hljs-number">3200</span>, <span class="hljs-number">4200</span>],
+    income_q4 <span class="hljs-keyword">=</span> [<span class="hljs-number">2300</span>, <span class="hljs-number">3300</span>, <span class="hljs-number">4300</span>],
+)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">6</span> DataFrame
+ Row │ year   tax_rate  income_q1  income_q2  income_q3  income_q4
+     │ <span class="hljs-type">Int64</span>  <span class="hljs-type">Float64</span>   <span class="hljs-type">Int64</span>      <span class="hljs-type">Int64</span>      <span class="hljs-type">Int64</span>      <span class="hljs-type">Int64</span>
+─────┼─────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │  <span class="hljs-number">2019</span>      <span class="hljs-number">0.19</span>       <span class="hljs-number">2000</span>       <span class="hljs-number">2100</span>       <span class="hljs-number">2200</span>       <span class="hljs-number">2300</span>
+   <span class="hljs-number">2</span> │  <span class="hljs-number">2020</span>      <span class="hljs-number">0.2</span>        <span class="hljs-number">3000</span>       <span class="hljs-number">3100</span>       <span class="hljs-number">3200</span>       <span class="hljs-number">3300</span>
+   <span class="hljs-number">3</span> │  <span class="hljs-number">2021</span>      <span class="hljs-number">0.21</span>       <span class="hljs-number">4000</span>       <span class="hljs-number">4100</span>       <span class="hljs-number">4200</span>       <span class="hljs-number">4300</span></code></pre>
+<p>Then we can simply multiply the tax rate with the four income columns at once, which we select with the <code>Between</code> selector.</p>
+<pre><code class="julia hljs"><span class="hljs-meta">@select</span>(df, <span class="hljs-symbol">:tax_rate</span> <span class="hljs-built_in">*</span> <span class="hljs-built_in">Between</span>(<span class="hljs-number">3</span>, <span class="hljs-number">6</span>))
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ tax_rate_income_q1_<span class="hljs-built_in">*</span>  tax_rate_income_q2_<span class="hljs-built_in">*</span>  tax_rate_income_q3_<span class="hljs-built_in">*</span>  tax_rate_income_q4_<span class="hljs-built_in">*</span>
+     │ <span class="hljs-type">Float64</span>               <span class="hljs-type">Float64</span>               <span class="hljs-type">Float64</span>               <span class="hljs-type">Float64</span>
+─────┼────────────────────────────────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │                <span class="hljs-number">380.0</span>                 <span class="hljs-number">399.0</span>                 <span class="hljs-number">418.0</span>                 <span class="hljs-number">437.0</span>
+   <span class="hljs-number">2</span> │                <span class="hljs-number">600.0</span>                 <span class="hljs-number">620.0</span>                 <span class="hljs-number">640.0</span>                 <span class="hljs-number">660.0</span>
+   <span class="hljs-number">3</span> │                <span class="hljs-number">840.0</span>                 <span class="hljs-number">861.0</span>                 <span class="hljs-number">882.0</span>                 <span class="hljs-number">903.0</span></code></pre>
+<p>Another option to select the columns would be to use a regex. We have to mark it with <code>&#36;</code> so that DataFrameMacros knows to treat it as a column specifier.</p>
+<pre><code class="julia hljs"><span class="hljs-meta">@select</span>(df, <span class="hljs-symbol">:tax_rate</span> <span class="hljs-built_in">*</span> <span class="hljs-built_in">$</span>(<span class="hljs-regexp">r&quot;income&quot;</span>))
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ tax_rate_income_q1_<span class="hljs-built_in">*</span>  tax_rate_income_q2_<span class="hljs-built_in">*</span>  tax_rate_income_q3_<span class="hljs-built_in">*</span>  tax_rate_income_q4_<span class="hljs-built_in">*</span>
+     │ <span class="hljs-type">Float64</span>               <span class="hljs-type">Float64</span>               <span class="hljs-type">Float64</span>               <span class="hljs-type">Float64</span>
+─────┼────────────────────────────────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │                <span class="hljs-number">380.0</span>                 <span class="hljs-number">399.0</span>                 <span class="hljs-number">418.0</span>                 <span class="hljs-number">437.0</span>
+   <span class="hljs-number">2</span> │                <span class="hljs-number">600.0</span>                 <span class="hljs-number">620.0</span>                 <span class="hljs-number">640.0</span>                 <span class="hljs-number">660.0</span>
+   <span class="hljs-number">3</span> │                <span class="hljs-number">840.0</span>                 <span class="hljs-number">861.0</span>                 <span class="hljs-number">882.0</span>                 <span class="hljs-number">903.0</span></code></pre>
+<p>Now one issue is that the resulting column names are very ugly. We could specify the new names directly as a vector. Remember that the expression is <code>source&#40;s&#41; .&#61;&gt; function&#40;s&#41; .&#61;&gt; sink&#40;s&#41;</code> so we can also broadcast a vector of sinks. The string <code>&quot;taxes_q1&quot;</code> will be the sink associated with the first element from the regex selector, and so on.</p>
+<pre><code class="julia hljs"><span class="hljs-meta">@select</span>(df,
+    [<span class="hljs-string">&quot;taxes_q1&quot;</span>, <span class="hljs-string">&quot;taxes_q2&quot;</span>, <span class="hljs-string">&quot;taxes_q3&quot;</span>, <span class="hljs-string">&quot;taxes_q4&quot;</span>] <span class="hljs-keyword">=</span> <span class="hljs-symbol">:tax_rate</span> <span class="hljs-built_in">*</span> <span class="hljs-built_in">$</span>(<span class="hljs-regexp">r&quot;income&quot;</span>))
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ taxes_q1  taxes_q2  taxes_q3  taxes_q4
+     │ <span class="hljs-type">Float64</span>   <span class="hljs-type">Float64</span>   <span class="hljs-type">Float64</span>   <span class="hljs-type">Float64</span>
+─────┼────────────────────────────────────────
+   <span class="hljs-number">1</span> │    <span class="hljs-number">380.0</span>     <span class="hljs-number">399.0</span>     <span class="hljs-number">418.0</span>     <span class="hljs-number">437.0</span>
+   <span class="hljs-number">2</span> │    <span class="hljs-number">600.0</span>     <span class="hljs-number">620.0</span>     <span class="hljs-number">640.0</span>     <span class="hljs-number">660.0</span>
+   <span class="hljs-number">3</span> │    <span class="hljs-number">840.0</span>     <span class="hljs-number">861.0</span>     <span class="hljs-number">882.0</span>     <span class="hljs-number">903.0</span></code></pre>
+<p>But writing out strings like that is error prone, especially if the order of columns can change. So it would be better to transform the original column names. DataFrames allows to use anonymous functions for this, the input for the function is a vector with all column names used in the expression. We can split off the <code>&quot;q1&quot;</code> part from the second column in each expression &#40;the income column&#41; and prefix with <code>&quot;taxes_&quot;</code>:</p>
+<pre><code class="julia hljs"><span class="hljs-meta">@select</span>(df, (names <span class="hljs-built_in">-&gt;</span> <span class="hljs-string">&quot;taxes_&quot;</span> <span class="hljs-built_in">*</span> <span class="hljs-title">split</span>(<span class="hljs-params">names</span>[<span class="hljs-number">2</span>], <span class="hljs-string">&quot;_&quot;</span>)[<span class="hljs-number">2</span>]) <span class="hljs-keyword">=</span> <span class="hljs-symbol">:tax_rate</span> <span class="hljs-built_in">*</span> <span class="hljs-built_in">$</span>(<span class="hljs-regexp">r&quot;income&quot;</span>))
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">4</span> DataFrame
+ Row │ taxes_q1  taxes_q2  taxes_q3  taxes_q4
+     │ <span class="hljs-type">Float64</span>   <span class="hljs-type">Float64</span>   <span class="hljs-type">Float64</span>   <span class="hljs-type">Float64</span>
+─────┼────────────────────────────────────────
+   <span class="hljs-number">1</span> │    <span class="hljs-number">380.0</span>     <span class="hljs-number">399.0</span>     <span class="hljs-number">418.0</span>     <span class="hljs-number">437.0</span>
+   <span class="hljs-number">2</span> │    <span class="hljs-number">600.0</span>     <span class="hljs-number">620.0</span>     <span class="hljs-number">640.0</span>     <span class="hljs-number">660.0</span>
+   <span class="hljs-number">3</span> │    <span class="hljs-number">840.0</span>     <span class="hljs-number">861.0</span>     <span class="hljs-number">882.0</span>     <span class="hljs-number">903.0</span></code></pre>
+<h3 id="broadcasting_with_more_than_one_dimension"><a href="#broadcasting_with_more_than_one_dimension" class="header-anchor">Broadcasting with more than one dimension</a></h3>
+<p>You are not technically limited to broadcasting one vector of columns with scalar columns, you can even evaluate two- or higher-dimensional grids of column combinations if you like. For example, if you had two different tax rates and three income categories, you could compute all six tax columns with one expression. Here we extract the income columns first so we can make them into a row-vector with <code>permutedims</code>, which will form a 2D grid when broadcasted together with the column vector with the two tax columns.</p>
+<pre><code class="julia hljs">df <span class="hljs-keyword">=</span> <span class="hljs-built_in">DataFrame</span>(
+    year <span class="hljs-keyword">=</span> [<span class="hljs-number">2019</span>, <span class="hljs-number">2020</span>, <span class="hljs-number">2021</span>],
+    tax_a <span class="hljs-keyword">=</span> [<span class="hljs-number">0.19</span>, <span class="hljs-number">0.20</span>, <span class="hljs-number">0.21</span>],
+    tax_b <span class="hljs-keyword">=</span> [<span class="hljs-number">0.22</span>, <span class="hljs-number">0.23</span>, <span class="hljs-number">0.24</span>],
+    income_a <span class="hljs-keyword">=</span> [<span class="hljs-number">2000</span>, <span class="hljs-number">3000</span>, <span class="hljs-number">4000</span>],
+    income_b <span class="hljs-keyword">=</span> [<span class="hljs-number">2100</span>, <span class="hljs-number">3100</span>, <span class="hljs-number">4100</span>],
+    income_c <span class="hljs-keyword">=</span> [<span class="hljs-number">2200</span>, <span class="hljs-number">3200</span>, <span class="hljs-number">4200</span>],
+)
+
+income_cols <span class="hljs-keyword">=</span> <span class="hljs-built_in">permutedims</span>(<span class="hljs-built_in">names</span>(df, <span class="hljs-regexp">r&quot;income&quot;</span>))
+
+<span class="hljs-meta">@select</span>(df, <span class="hljs-built_in">$</span>(<span class="hljs-regexp">r&quot;tax&quot;</span>) <span class="hljs-built_in">*</span> <span class="hljs-built_in">$</span>income_cols)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">6</span> DataFrame
+ Row │ tax_a_income_a_<span class="hljs-built_in">*</span>  tax_b_income_a_<span class="hljs-built_in">*</span>  tax_a_income_b_<span class="hljs-built_in">*</span>  tax_b_income_b_<span class="hljs-built_in">*</span>  tax_a_income_c_<span class="hljs-built_in">*</span>  tax_b_income_c_<span class="hljs-built_in">*</span>
+     │ <span class="hljs-type">Float64</span>           <span class="hljs-type">Float64</span>           <span class="hljs-type">Float64</span>           <span class="hljs-type">Float64</span>           <span class="hljs-type">Float64</span>           <span class="hljs-type">Float64</span>
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │            <span class="hljs-number">380.0</span>             <span class="hljs-number">440.0</span>             <span class="hljs-number">399.0</span>             <span class="hljs-number">462.0</span>             <span class="hljs-number">418.0</span>             <span class="hljs-number">484.0</span>
+   <span class="hljs-number">2</span> │            <span class="hljs-number">600.0</span>             <span class="hljs-number">690.0</span>             <span class="hljs-number">620.0</span>             <span class="hljs-number">713.0</span>             <span class="hljs-number">640.0</span>             <span class="hljs-number">736.0</span>
+   <span class="hljs-number">3</span> │            <span class="hljs-number">840.0</span>             <span class="hljs-number">960.0</span>             <span class="hljs-number">861.0</span>             <span class="hljs-number">984.0</span>             <span class="hljs-number">882.0</span>            <span class="hljs-number">1008.0</span></code></pre>
+<p>The column names are again not ideal, which brings us to another new feature.</p>
+<h2 id="shortcut_strings_for_renaming"><a href="#shortcut_strings_for_renaming" class="header-anchor">Shortcut strings for renaming</a></h2>
+<p>Often, we want to give new columns names that are just simple combinations of column names used to compute them. In the last example, a better name than <code>tax_a_income_a_*</code> could be <code>tax_a_on_income_b</code>.</p>
+<p>If DataFrameMacros encounters a string literal as the sink which contains <code>&quot;&#123;&#125;&quot;</code>, <code>&quot;&#123;1&#125;&quot;</code> or <code>&quot;&#123;2&#125;&quot;</code> and up, it translates this into a renaming function that pastes the input column names at the respective locations. Here&#39;s the last example again with such a shortcut string:</p>
+<pre><code class="julia hljs"><span class="hljs-meta">@select</span>(df, <span class="hljs-string">&quot;{1}_on_{2}&quot;</span> <span class="hljs-keyword">=</span> <span class="hljs-built_in">$</span>(<span class="hljs-regexp">r&quot;tax&quot;</span>) <span class="hljs-built_in">*</span> <span class="hljs-built_in">$</span>income_cols)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">3</span><span class="hljs-built_in">×</span><span class="hljs-number">6</span> DataFrame
+ Row │ tax_a_on_income_a  tax_b_on_income_a  tax_a_on_income_b  tax_b_on_income_b  tax_a_on_income_c  tax_b_on_income_c
+     │ <span class="hljs-type">Float64</span>            <span class="hljs-type">Float64</span>            <span class="hljs-type">Float64</span>            <span class="hljs-type">Float64</span>            <span class="hljs-type">Float64</span>            <span class="hljs-type">Float64</span>
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   <span class="hljs-number">1</span> │             <span class="hljs-number">380.0</span>              <span class="hljs-number">440.0</span>              <span class="hljs-number">399.0</span>              <span class="hljs-number">462.0</span>              <span class="hljs-number">418.0</span>              <span class="hljs-number">484.0</span>
+   <span class="hljs-number">2</span> │             <span class="hljs-number">600.0</span>              <span class="hljs-number">690.0</span>              <span class="hljs-number">620.0</span>              <span class="hljs-number">713.0</span>              <span class="hljs-number">640.0</span>              <span class="hljs-number">736.0</span>
+   <span class="hljs-number">3</span> │             <span class="hljs-number">840.0</span>              <span class="hljs-number">960.0</span>              <span class="hljs-number">861.0</span>              <span class="hljs-number">984.0</span>              <span class="hljs-number">882.0</span>             <span class="hljs-number">1008.0</span></code></pre>
+<h2 id="subset_transformations"><a href="#subset_transformations" class="header-anchor">Subset transformations</a></h2>
+<p>The third new feature goes hand in hand with a new addition in DataFrames v1.3. Now you can call <code>transform&#33;</code> or <code>select&#33;</code> on the view returned by <code>subset&#40;df, some_subset_expression, view &#61; true&#41;</code>, and this will mutate the underlying DataFrame only in the selected rows. If new columns are added, all rows outside the subset are filled with <code>missing</code> values.</p>
+<p>In base DataFrames, you need to first create a subset view, then mutate it, then continue on with the original DataFrame. Here&#39;s the DataFrame we start with</p>
+<pre><code class="julia hljs">df <span class="hljs-keyword">=</span> <span class="hljs-built_in">DataFrame</span>(x <span class="hljs-keyword">=</span> <span class="hljs-number">1</span><span class="hljs-built_in">:</span><span class="hljs-number">4</span>, y <span class="hljs-keyword">=</span> <span class="hljs-number">5</span><span class="hljs-built_in">:</span><span class="hljs-number">8</span>)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">4</span><span class="hljs-built_in">×</span><span class="hljs-number">2</span> DataFrame
+ Row │ x      y
+     │ <span class="hljs-type">Int64</span>  <span class="hljs-type">Int64</span>
+─────┼──────────────
+   <span class="hljs-number">1</span> │     <span class="hljs-number">1</span>      <span class="hljs-number">5</span>
+   <span class="hljs-number">2</span> │     <span class="hljs-number">2</span>      <span class="hljs-number">6</span>
+   <span class="hljs-number">3</span> │     <span class="hljs-number">3</span>      <span class="hljs-number">7</span>
+   <span class="hljs-number">4</span> │     <span class="hljs-number">4</span>      <span class="hljs-number">8</span></code></pre>
+<p>Now we subset some rows and increment the y values by 10 there. We also create new z values:</p>
+<pre><code class="julia hljs">subset_view <span class="hljs-keyword">=</span> <span class="hljs-built_in">subset</span>(df, <span class="hljs-symbol">:x</span> <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">ByRow</span>(<span class="hljs-built_in">&gt;=</span>(<span class="hljs-number">3</span>)), view <span class="hljs-keyword">=</span> <span class="hljs-literal">true</span>)
+<span class="hljs-built_in">transform!</span>(
+    subset_view,
+    <span class="hljs-symbol">:y</span> <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">ByRow</span>(x <span class="hljs-built_in">-&gt;</span> x <span class="hljs-built_in">+</span> <span class="hljs-number">10</span>) <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>y,
+    <span class="hljs-symbol">:x</span> <span class="hljs-built_in">=&gt;</span> (x <span class="hljs-built_in">-&gt;</span> x <span class="hljs-built_in">*</span> <span class="hljs-number">3</span>) <span class="hljs-built_in">=&gt;</span> <span class="hljs-built_in">:</span>z
+)
+df
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">4</span><span class="hljs-built_in">×</span><span class="hljs-number">3</span> DataFrame
+ Row │ x      y      z
+     │ <span class="hljs-type">Int64</span>  <span class="hljs-type">Int64</span>  <span class="hljs-type">Int64</span><span class="hljs-built_in">?</span>
+─────┼───────────────────────
+   <span class="hljs-number">1</span> │     <span class="hljs-number">1</span>      <span class="hljs-number">5</span>  <span class="hljs-literal">missing</span>
+   <span class="hljs-number">2</span> │     <span class="hljs-number">2</span>      <span class="hljs-number">6</span>  <span class="hljs-literal">missing</span>
+   <span class="hljs-number">3</span> │     <span class="hljs-number">3</span>     <span class="hljs-number">17</span>        <span class="hljs-number">9</span>
+   <span class="hljs-number">4</span> │     <span class="hljs-number">4</span>     <span class="hljs-number">18</span>       <span class="hljs-number">12</span></code></pre>
+<p>In DataFrameMacros v0.2, you can now use a more convenient syntax that plays well with Chain.jl or other piping mechanisms, where you only want to use functions that return the DataFrame you work with, not a subset view. You can simply pass a <code>@subset</code> expression to <code>@transform&#33;</code> or <code>@select&#33;</code> after the DataFrame argument. This <code>@subset</code> expression doesn&#39;t take its own DataFrame argument as usual, that&#39;s implied to be the DataFrame that is being transformed. The returned object after mutating the selected rows is the original DataFrame. You can see how much more concise the same operation becomes:</p>
+<pre><code class="julia hljs">df <span class="hljs-keyword">=</span> <span class="hljs-built_in">DataFrame</span>(x <span class="hljs-keyword">=</span> <span class="hljs-number">1</span><span class="hljs-built_in">:</span><span class="hljs-number">4</span>, y <span class="hljs-keyword">=</span> <span class="hljs-number">5</span><span class="hljs-built_in">:</span><span class="hljs-number">8</span>)
+<span class="hljs-meta">@transform!</span>(df, <span class="hljs-meta">@subset</span>(<span class="hljs-symbol">:x</span> <span class="hljs-built_in">&gt;=</span> <span class="hljs-number">3</span>), <span class="hljs-symbol">:y</span> <span class="hljs-keyword">=</span> <span class="hljs-symbol">:y</span> <span class="hljs-built_in">+</span> <span class="hljs-number">10</span>, <span class="hljs-symbol">:z</span> <span class="hljs-keyword">=</span> <span class="hljs-number">3</span> <span class="hljs-built_in">*</span> <span class="hljs-symbol">:x</span>)
+<span class="hljs-string">`</span></code></pre>
+<pre><code class="julia hljs"><span class="hljs-number">4</span><span class="hljs-built_in">×</span><span class="hljs-number">3</span> DataFrame
+ Row │ x      y      z
+     │ <span class="hljs-type">Int64</span>  <span class="hljs-type">Int64</span>  <span class="hljs-type">Int64</span><span class="hljs-built_in">?</span>
+─────┼───────────────────────
+   <span class="hljs-number">1</span> │     <span class="hljs-number">1</span>      <span class="hljs-number">5</span>  <span class="hljs-literal">missing</span>
+   <span class="hljs-number">2</span> │     <span class="hljs-number">2</span>      <span class="hljs-number">6</span>  <span class="hljs-literal">missing</span>
+   <span class="hljs-number">3</span> │     <span class="hljs-number">3</span>     <span class="hljs-number">17</span>        <span class="hljs-number">9</span>
+   <span class="hljs-number">4</span> │     <span class="hljs-number">4</span>     <span class="hljs-number">18</span>       <span class="hljs-number">12</span></code></pre>
+<h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2>
+<p>That concludes the overview of the three new features, multi-column specifiers, shortcut strings for renaming and subset transformations. Especially multi-column specifiers with their implicit broadcasting might need a moment to wrap your head around, but I think you&#39;ll find them very convenient. I hope you enjoy using the new release&#33;</p>
+<div class="page-foot">
+  <div class="copyright">
+    &copy; Julius Krumbiegel. Last modified: December 28, 2021. Website built with <a href="https://github.com/tlienart/Franklin.jl">Franklin.jl</a> and the <a href="https://julialang.org">Julia programming language</a>.
+  </div>
+</div>
+</div><!-- CONTENT ENDS HERE -->
+    
+    
+        <script src="/libs/highlight/julia.highlight.js"></script>
+
+
+    
+  </body>
+</html>

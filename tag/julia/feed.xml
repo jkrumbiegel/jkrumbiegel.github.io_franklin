@@ -23,6 +23,27 @@
 
 <item>
   <title>
+    <![CDATA[  Multi-columns, shortcut strings and subset transformations in DataFrameMacros.jl v0.2  ]]>
+  </title>
+  <link> https://jkrumbiegel.github.io/pages/2021-12-28-new-features-dataframemacros/index.html </link>
+  <guid> https://jkrumbiegel.github.io/pages/2021-12-28-new-features-dataframemacros/index.html </guid>
+  <description>
+    <![CDATA[  Multi-columns, shortcut strings and subset transformations in DataFrameMacros.jl v0.2  ]]>
+  </description>  
+    
+  <pubDate>Tue, 28 Dec 2021 00:00:00 +0000</pubDate>  
+  
+  <author> Julius Krumbiegel </author>
+  
+  
+  <atom:author>
+    <atom:name>Julius Krumbiegel</atom:name>
+  </atom:author>
+        
+</item>
+
+<item>
+  <title>
     <![CDATA[  Analyzing international football results with Julia  ]]>
   </title>
   <link> https://jkrumbiegel.github.io/pages/2021-06-20-football-data-analysis/index.html </link>
