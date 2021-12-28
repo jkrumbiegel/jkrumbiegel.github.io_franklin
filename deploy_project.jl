@@ -1,3 +1,6 @@
+# This should be run in a project folder after Literate.markdown(jlfile, execute = true)
+# has been run there, it assumes that md files are the output, plus optional assets in an output folder
+
 outputfolder = "output"
 assetfolder = "../../_assets"
 assetfolder_html = "/assets"
