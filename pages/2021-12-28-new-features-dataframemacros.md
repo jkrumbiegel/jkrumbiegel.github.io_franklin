@@ -84,7 +84,7 @@ print(x)
 ````
 
 We can try out the `All()` specifier by reversing the element order of each column.
-We need the `@c`` flag so `reverse` acts on each column vector and not each column element.
+We need the `@c` flag so `reverse` acts on each column vector and not each column element.
 This works the same way with the `Between` and `Not` selectors.
 
 ````julia
