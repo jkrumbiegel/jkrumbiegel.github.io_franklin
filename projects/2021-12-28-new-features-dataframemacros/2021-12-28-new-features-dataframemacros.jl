@@ -23,7 +23,7 @@
 # For many tasks this is perfectly sufficient, but other times one wants to execute the same function over a set of similar or related columns.
 
 # DataFrames.jl has a neat way to run the same function on a set of columns.
-# This is done by using the `.=>` operator, to broadcast over the a set or sets of columns and create an array of `source => function => sink` expressions.
+# This is done by using the `.=>` operator, to broadcast over a set or sets of columns and create an array of `source => function => sink` expressions.
 # For example, you could compute the sum for each column in a DataFrame with `transform(df, names(df, All()) .=> sum)`, or in the recent v1.3 release even with `transform(df, All() .=> sum)`.
 
 # Now, the trick that DataFrameMacros.jl v0.2.1 uses is to change the underlying representation from `source => function => sink` to `source(s) .=> function(s) .=> sink(s)`.
